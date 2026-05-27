@@ -139,16 +139,25 @@
 
   /* PROJECTS CAROUSEL */
   .proj-carousel {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+  }
+
+  .proj-track {
     display: flex;
     gap: 20px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding-bottom: 20px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
+    width: max-content;
+    animation: marquee 35s linear infinite;
   }
-  .proj-carousel::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Edge */
+
+  .proj-carousel:hover .proj-track {
+    animation-play-state: paused; /* Pause on hover */
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
   }
   .proj-card {
     flex: 0 0 280px;
@@ -307,67 +316,121 @@
   </div>
 
   <div class="proj-carousel">
-    <div class="proj-card">
-      <img src="images/clivechristian.jpg" alt="Clive Christian Perfumery Boutique">
-      <div class="proj-info">
-        <div class="proj-name">Clive Christian</div>
-        <div class="proj-loc">Dubai Mall, UAE</div>
+    <div class="proj-track">
+      <!-- Original cards -->
+      <div class="proj-card">
+        <img src="images/clivechristian.jpg" alt="Clive Christian Perfumery Boutique">
+        <div class="proj-info">
+          <div class="proj-name">Clive Christian</div>
+          <div class="proj-loc">Dubai Mall, UAE</div>
+        </div>
       </div>
-    </div>
-
-    <div class="proj-card">
-      <img src="images/caron.jpg" alt="CARON Paris Flagship">
-      <div class="proj-info">
-        <div class="proj-name">CARON Paris</div>
-        <div class="proj-loc">Dubai, UAE</div>
+      <div class="proj-card">
+        <img src="images/caron.jpg" alt="CARON Paris Flagship">
+        <div class="proj-info">
+          <div class="proj-name">CARON Paris</div>
+          <div class="proj-loc">Dubai, UAE</div>
+        </div>
       </div>
-    </div>
-
-    <div class="proj-card">
-      <img src="images/shrimppot.jpg" alt="ShrimpPot Multi-Location F&amp;B">
-      <div class="proj-info">
-        <div class="proj-name">ShrimpPot</div>
-        <div class="proj-loc">Abu Dhabi, UAE</div>
+      <div class="proj-card">
+        <img src="images/shrimppot.jpg" alt="ShrimpPot Multi-Location F&amp;B">
+        <div class="proj-info">
+          <div class="proj-name">ShrimpPot</div>
+          <div class="proj-loc">Abu Dhabi, UAE</div>
+        </div>
       </div>
-    </div>
-
-    <div class="proj-card">
-      <img src="images/lodore.jpg" alt="L'Odore Perfumery">
-      <div class="proj-info">
-        <div class="proj-name">L'Odore</div>
-        <div class="proj-loc">Riyadh, KSA</div>
+      <div class="proj-card">
+        <img src="images/lodore.jpg" alt="L'Odore Perfumery">
+        <div class="proj-info">
+          <div class="proj-name">L'Odore</div>
+          <div class="proj-loc">Riyadh, KSA</div>
+        </div>
       </div>
-    </div>
-
-    <div class="proj-card">
-      <img src="images/axquadiparma.jpg" alt="Acqua Di Parma Projects">
-      <div class="proj-info">
-        <div class="proj-name">Acqua Di Parma</div>
-        <div class="proj-loc">Various, GCC</div>
+      <div class="proj-card">
+        <img src="images/axquadiparma.jpg" alt="Acqua Di Parma Projects">
+        <div class="proj-info">
+          <div class="proj-name">Acqua Di Parma</div>
+          <div class="proj-loc">Various, GCC</div>
+        </div>
       </div>
-    </div>
-
-    <div class="proj-card">
-      <img src="images/roja.jpg" alt="ROJA Flagship Boutique">
-      <div class="proj-info">
-        <div class="proj-name">ROJA</div>
-        <div class="proj-loc">Dubai, UAE</div>
+      <div class="proj-card">
+        <img src="images/roja.jpg" alt="ROJA Flagship Boutique">
+        <div class="proj-info">
+          <div class="proj-name">ROJA</div>
+          <div class="proj-loc">Dubai, UAE</div>
+        </div>
       </div>
-    </div>
-
-    <div class="proj-card">
-      <img src="images/TizianaTerenzi.jpg" alt="Tiziana Terenzi">
-      <div class="proj-info">
-        <div class="proj-name">Tiziana Terenzi</div>
-        <div class="proj-loc">GCC</div>
+      <div class="proj-card">
+        <img src="images/TizianaTerenzi.jpg" alt="Tiziana Terenzi">
+        <div class="proj-info">
+          <div class="proj-name">Tiziana Terenzi</div>
+          <div class="proj-loc">GCC</div>
+        </div>
       </div>
-    </div>
+      <div class="proj-card">
+        <img src="images/storiecafe.jpg" alt="Storie Cafe">
+        <div class="proj-info">
+          <div class="proj-name">Storie Cafe</div>
+          <div class="proj-loc">Abu Dhabi, UAE</div>
+        </div>
+      </div>
 
-    <div class="proj-card">
-      <img src="images/storiecafe.jpg" alt="Storie Cafe">
-      <div class="proj-info">
-        <div class="proj-name">Storie Cafe</div>
-        <div class="proj-loc">Abu Dhabi, UAE</div>
+      <!-- Duplicated cards for seamless loop -->
+      <div class="proj-card">
+        <img src="images/clivechristian.jpg" alt="Clive Christian Perfumery Boutique">
+        <div class="proj-info">
+          <div class="proj-name">Clive Christian</div>
+          <div class="proj-loc">Dubai Mall, UAE</div>
+        </div>
+      </div>
+      <div class="proj-card">
+        <img src="images/caron.jpg" alt="CARON Paris Flagship">
+        <div class="proj-info">
+          <div class="proj-name">CARON Paris</div>
+          <div class="proj-loc">Dubai, UAE</div>
+        </div>
+      </div>
+      <div class="proj-card">
+        <img src="images/shrimppot.jpg" alt="ShrimpPot Multi-Location F&amp;B">
+        <div class="proj-info">
+          <div class="proj-name">ShrimpPot</div>
+          <div class="proj-loc">Abu Dhabi, UAE</div>
+        </div>
+      </div>
+      <div class="proj-card">
+        <img src="images/lodore.jpg" alt="L'Odore Perfumery">
+        <div class="proj-info">
+          <div class="proj-name">L'Odore</div>
+          <div class="proj-loc">Riyadh, KSA</div>
+        </div>
+      </div>
+      <div class="proj-card">
+        <img src="images/axquadiparma.jpg" alt="Acqua Di Parma Projects">
+        <div class="proj-info">
+          <div class="proj-name">Acqua Di Parma</div>
+          <div class="proj-loc">Various, GCC</div>
+        </div>
+      </div>
+      <div class="proj-card">
+        <img src="images/roja.jpg" alt="ROJA Flagship Boutique">
+        <div class="proj-info">
+          <div class="proj-name">ROJA</div>
+          <div class="proj-loc">Dubai, UAE</div>
+        </div>
+      </div>
+      <div class="proj-card">
+        <img src="images/TizianaTerenzi.jpg" alt="Tiziana Terenzi">
+        <div class="proj-info">
+          <div class="proj-name">Tiziana Terenzi</div>
+          <div class="proj-loc">GCC</div>
+        </div>
+      </div>
+      <div class="proj-card">
+        <img src="images/storiecafe.jpg" alt="Storie Cafe">
+        <div class="proj-info">
+          <div class="proj-name">Storie Cafe</div>
+          <div class="proj-loc">Abu Dhabi, UAE</div>
+        </div>
       </div>
     </div>
   </div>
@@ -409,39 +472,6 @@
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
   document.querySelectorAll('.rv').forEach((el,i)=>{el.style.transitionDelay=(i%3*0.1)+'s';io.observe(el)});
 
-  // Auto-scrolling Projects Carousel (using requestAnimationFrame for reliability)
-  function initAutoScrollCarousel() {
-    const carousel = document.querySelector('.proj-carousel');
-    if (!carousel) return;
-
-    let isPaused = false;
-
-    function scrollStep() {
-      if (!isPaused) {
-        carousel.scrollLeft += 1.8;
-
-        // Loop back smoothly
-        if (carousel.scrollLeft >= carousel.scrollWidth - carousel.clientWidth - 10) {
-          carousel.scrollLeft = 0;
-        }
-      }
-      requestAnimationFrame(scrollStep);
-    }
-
-    // Start the auto-scroll loop
-    requestAnimationFrame(scrollStep);
-
-    // Pause on hover, resume on mouse leave
-    carousel.addEventListener('mouseenter', () => isPaused = true);
-    carousel.addEventListener('mouseleave', () => isPaused = false);
-  }
-
-  // Run after DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAutoScrollCarousel);
-  } else {
-    initAutoScrollCarousel();
-  }
 </script>
 </body>
 </html>
