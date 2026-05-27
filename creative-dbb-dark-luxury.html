@@ -145,6 +145,10 @@
     scroll-snap-type: x mandatory;
     padding-bottom: 20px;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+  .proj-carousel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
   }
   .proj-card {
     flex: 0 0 280px;
@@ -405,40 +409,38 @@
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
   document.querySelectorAll('.rv').forEach((el,i)=>{el.style.transitionDelay=(i%3*0.1)+'s';io.observe(el)});
 
-  // Auto-scrolling Projects Carousel
-  const carousel = document.querySelector('.proj-carousel');
-  if (carousel) {
-    let scrollInterval;
+  // Auto-scrolling Projects Carousel (using requestAnimationFrame for reliability)
+  function initAutoScrollCarousel() {
+    const carousel = document.querySelector('.proj-carousel');
+    if (!carousel) return;
+
     let isPaused = false;
 
-    function startAutoScroll() {
-      if (scrollInterval) clearInterval(scrollInterval);
-      scrollInterval = setInterval(() => {
-        if (!isPaused) {
-          carousel.scrollLeft += 1.2; // slow smooth scroll
+    function scrollStep() {
+      if (!isPaused) {
+        carousel.scrollLeft += 1.8;
 
-          // Reset to beginning when reaching the end
-          if (carousel.scrollLeft >= carousel.scrollWidth - carousel.clientWidth - 10) {
-            carousel.scrollLeft = 0;
-          }
+        // Loop back smoothly
+        if (carousel.scrollLeft >= carousel.scrollWidth - carousel.clientWidth - 10) {
+          carousel.scrollLeft = 0;
         }
-      }, 30);
+      }
+      requestAnimationFrame(scrollStep);
     }
 
-    function stopAutoScroll() {
-      isPaused = true;
-    }
+    // Start the auto-scroll loop
+    requestAnimationFrame(scrollStep);
 
-    function resumeAutoScroll() {
-      isPaused = false;
-    }
+    // Pause on hover, resume on mouse leave
+    carousel.addEventListener('mouseenter', () => isPaused = true);
+    carousel.addEventListener('mouseleave', () => isPaused = false);
+  }
 
-    // Pause on hover
-    carousel.addEventListener('mouseenter', stopAutoScroll);
-    carousel.addEventListener('mouseleave', resumeAutoScroll);
-
-    // Start auto scroll
-    startAutoScroll();
+  // Run after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAutoScrollCarousel);
+  } else {
+    initAutoScrollCarousel();
   }
 </script>
 </body>
