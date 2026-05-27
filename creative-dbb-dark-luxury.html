@@ -13,6 +13,7 @@
     --txt:#d8d2c4; --mut:#8d877a; --line:rgba(224,169,60,.22);
   }
   *{margin:0;padding:0;box-sizing:border-box}
+  html, body {overflow-x: hidden;}
   html{scroll-behavior:smooth}
   body{background:var(--black);color:var(--txt);font-family:'Outfit',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
   ::selection{background:var(--gold);color:var(--black)}
@@ -126,8 +127,14 @@
   .nm-c .lab{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-top:14px}
   @media(max-width:760px){
     .nums{grid-template-columns:1fr 1fr}
-    .nm-c{padding:36px 18px}
-    .nm-c .big{font-size:48px}
+    .nm-c{padding:28px 14px}
+    .nm-c .big{font-size:42px}
+  }
+
+  @media(max-width:480px){
+    .nums{grid-template-columns:1fr}
+    .nm-c{padding:24px 16px}
+    .nm-c .big{font-size:38px}
   }
 
   /* CTA */
