@@ -137,6 +137,43 @@
     .nm-c .big{font-size:38px}
   }
 
+  /* PROJECTS CAROUSEL */
+  .proj-carousel {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 20px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .proj-card {
+    flex: 0 0 280px;
+    background: var(--black);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    scroll-snap-align: start;
+  }
+  .proj-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+  .proj-info {
+    padding: 18px 20px;
+  }
+  .proj-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+  .proj-loc {
+    font-size: 13px;
+    color: var(--mut);
+    letter-spacing: 0.5px;
+  }
+
   /* CTA */
   .cta-s{text-align:center;position:relative}
   .cta-s::before{content:"";position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(224,169,60,.13),transparent 65%);left:50%;top:50%;transform:translate(-50%,-50%)}
@@ -257,6 +294,81 @@
   </div>
 </div></section>
 
+<!-- PROJECTS CAROUSEL -->
+<section id="featured-projects"><div class="wrap">
+  <div class="sh rv">
+    <div class="em">Featured Projects</div>
+    <h2>Work delivered across the region</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="proj-carousel">
+    <div class="proj-card">
+      <img src="images/clivechristian.jpg" alt="Clive Christian Perfumery Boutique">
+      <div class="proj-info">
+        <div class="proj-name">Clive Christian</div>
+        <div class="proj-loc">Dubai Mall, UAE</div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <img src="images/caron.jpg" alt="CARON Paris Flagship">
+      <div class="proj-info">
+        <div class="proj-name">CARON Paris</div>
+        <div class="proj-loc">Dubai, UAE</div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <img src="images/shrimppot.jpg" alt="ShrimpPot Multi-Location F&amp;B">
+      <div class="proj-info">
+        <div class="proj-name">ShrimpPot</div>
+        <div class="proj-loc">Abu Dhabi, UAE</div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <img src="images/lodore.jpg" alt="L'Odore Perfumery">
+      <div class="proj-info">
+        <div class="proj-name">L'Odore</div>
+        <div class="proj-loc">Riyadh, KSA</div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <img src="images/axquadiparma.jpg" alt="Acqua Di Parma Projects">
+      <div class="proj-info">
+        <div class="proj-name">Acqua Di Parma</div>
+        <div class="proj-loc">Various, GCC</div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <img src="images/roja.jpg" alt="ROJA Flagship Boutique">
+      <div class="proj-info">
+        <div class="proj-name">ROJA</div>
+        <div class="proj-loc">Dubai, UAE</div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <img src="images/TizianaTerenzi.jpg" alt="Tiziana Terenzi">
+      <div class="proj-info">
+        <div class="proj-name">Tiziana Terenzi</div>
+        <div class="proj-loc">GCC</div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <img src="images/storiecafe.jpg" alt="Storie Cafe">
+      <div class="proj-info">
+        <div class="proj-name">Storie Cafe</div>
+        <div class="proj-loc">Abu Dhabi, UAE</div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
 <section id="numbers"><div class="wrap">
   <div class="sh rv">
     <div class="em">By the Numbers</div>
@@ -292,6 +404,42 @@
   addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>40));
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
   document.querySelectorAll('.rv').forEach((el,i)=>{el.style.transitionDelay=(i%3*0.1)+'s';io.observe(el)});
+
+  // Auto-scrolling Projects Carousel
+  const carousel = document.querySelector('.proj-carousel');
+  if (carousel) {
+    let scrollInterval;
+    let isPaused = false;
+
+    function startAutoScroll() {
+      if (scrollInterval) clearInterval(scrollInterval);
+      scrollInterval = setInterval(() => {
+        if (!isPaused) {
+          carousel.scrollLeft += 1.2; // slow smooth scroll
+
+          // Reset to beginning when reaching the end
+          if (carousel.scrollLeft >= carousel.scrollWidth - carousel.clientWidth - 10) {
+            carousel.scrollLeft = 0;
+          }
+        }
+      }, 30);
+    }
+
+    function stopAutoScroll() {
+      isPaused = true;
+    }
+
+    function resumeAutoScroll() {
+      isPaused = false;
+    }
+
+    // Pause on hover
+    carousel.addEventListener('mouseenter', stopAutoScroll);
+    carousel.addEventListener('mouseleave', resumeAutoScroll);
+
+    // Start auto scroll
+    startAutoScroll();
+  }
 </script>
 </body>
 </html>
