@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DBB — Design. Build. Beyond.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Cormorant+Garamond:ital@0;1&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --char:#34322f; --char-deep:#26241f; --gold:#e0a93c; --gold-soft:#e7bd66;
+    --paper:#f4f0e8; --paper-warm:#ece5d6; --ink:#2a2925; --white:#fffdf8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink);font-family:'Archivo',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  ::selection{background:var(--gold);color:var(--char-deep)}
+  .wrap{max-width:1320px;margin:0 auto;padding:0 48px}
+  @media(max-width:760px){.wrap{padding:0 22px}}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;z-index:50;mix-blend-mode:difference}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:96px}
+  .brand{font-family:'Fraunces',serif;font-weight:600;font-size:24px;letter-spacing:.16em;color:#fff}
+  .brand span{color:var(--gold);mix-blend-mode:normal}
+  .navlinks{display:flex;gap:42px;list-style:none}
+  .navlinks a{color:#fff;text-decoration:none;font-size:13px;letter-spacing:.22em;text-transform:uppercase;font-weight:500;transition:opacity .3s}
+  .navlinks a:hover{opacity:.5}
+  @media(max-width:760px){.navlinks{display:none}}
+
+  /* HERO */
+  header{min-height:100vh;background:var(--char);color:var(--paper);display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+  header::before{content:"";position:absolute;inset:0;background:
+    radial-gradient(circle at 78% 30%, rgba(224,169,60,.14), transparent 45%);}
+  .hero-index{position:absolute;top:120px;right:48px;font-family:'Cormorant Garamond',serif;font-size:14px;letter-spacing:.3em;opacity:.5}
+  .eyebrow{font-size:12px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);margin-bottom:34px;display:flex;align-items:center;gap:16px}
+  .eyebrow::before{content:"";width:54px;height:1px;background:var(--gold)}
+  h1{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(3.4rem,9vw,8.6rem);line-height:.96;letter-spacing:-.02em}
+  h1 em{font-style:italic;color:var(--gold)}
+  h1 .build{font-weight:600}
+  .hero-foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:64px;gap:40px;flex-wrap:wrap}
+  .hero-lede{max-width:380px;font-family:'Cormorant Garamond',serif;font-size:21px;line-height:1.5;opacity:.82}
+  .scroll-cue{font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:.55;writing-mode:vertical-rl;position:absolute;left:48px;bottom:48px}
+  @media(max-width:760px){.hero-index,.scroll-cue{display:none}}
+
+  /* MARQUEE */
+  .strip{background:var(--gold);overflow:hidden;padding:20px 0;border-top:1px solid var(--char);border-bottom:1px solid var(--char)}
+  .strip-track{display:flex;gap:60px;white-space:nowrap;animation:slide 32s linear infinite;font-family:'Fraunces',serif;font-style:italic;font-size:30px;color:var(--char-deep)}
+  @keyframes slide{to{transform:translateX(-50%)}}
+  .strip-track span{display:flex;align-items:center;gap:60px}
+  .strip-track span::after{content:"✦";font-size:18px}
+
+  /* SECTION SHELL */
+  section{padding:140px 0}
+  .sec-head{display:grid;grid-template-columns:1fr 1.4fr;gap:60px;margin-bottom:90px}
+  .sec-num{font-family:'Cormorant Garamond',serif;font-size:15px;letter-spacing:.25em;color:var(--gold)}
+  .sec-title{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(2.2rem,4.6vw,4rem);line-height:1.04}
+  .sec-title em{font-style:italic;color:var(--char)}
+  @media(max-width:760px){.sec-head{grid-template-columns:1fr;gap:14px;margin-bottom:50px}}
+
+  /* SERVICES */
+  .svc{border-top:1px solid #c9c0ac}
+  .svc-row{display:grid;grid-template-columns:80px 1fr 1.3fr 120px;gap:30px;padding:38px 0;border-bottom:1px solid #c9c0ac;align-items:baseline;transition:background .35s,padding .35s}
+  .svc-row:hover{background:var(--paper-warm);padding-left:24px;padding-right:24px}
+  .svc-row .n{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold)}
+  .svc-row h3{font-family:'Fraunces',serif;font-weight:400;font-size:30px}
+  .svc-row p{font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.45;color:#5b574d}
+  .svc-row .arrow{justify-self:end;font-size:22px;color:var(--gold);transition:transform .35s}
+  .svc-row:hover .arrow{transform:translate(6px,-6px)}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px}.svc-row .arrow,.svc-row .n{display:none}}
+
+  /* WORK */
+  .work{background:var(--char);color:var(--paper)}
+  .work .sec-title em{color:var(--gold)}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:30px}
+  .proj{position:relative;overflow:hidden;border-radius:3px;min-height:320px;display:flex;flex-direction:column;justify-content:flex-end;padding:34px;color:var(--paper);transition:transform .5s}
+  .proj:hover{transform:translateY(-8px)}
+  .proj::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 30%,rgba(20,19,16,.85));z-index:1}
+  .proj>*{position:relative;z-index:2}
+  .proj .tag{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+  .proj h4{font-family:'Fraunces',serif;font-weight:400;font-size:27px}
+  .p1{grid-column:span 7;background:linear-gradient(135deg,#4a4640,#2c2a25)}
+  .p2{grid-column:span 5;background:linear-gradient(135deg,#7a5e26,#3a3127)}
+  .p3{grid-column:span 5;background:linear-gradient(135deg,#3a3934,#211f1b)}
+  .p4{grid-column:span 7;background:linear-gradient(135deg,#5a4a2a,#2e2a22)}
+  .proj .big-letter{position:absolute;top:-30px;right:10px;font-family:'Fraunces',serif;font-size:200px;font-weight:600;color:rgba(224,169,60,.12);z-index:1;line-height:1}
+  @media(max-width:760px){.p1,.p2,.p3,.p4{grid-column:span 12}}
+
+  /* ETHOS */
+  .ethos{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+  .ethos-quote{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(1.8rem,3.4vw,3rem);line-height:1.22}
+  .ethos-quote em{font-style:italic;color:var(--gold)}
+  .ethos-card{background:var(--char);color:var(--paper);padding:54px;border-radius:4px;position:relative}
+  .ethos-card .badge{width:96px;height:96px;border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:32px;color:var(--gold);margin-bottom:30px}
+  .ethos-card p{font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.55;opacity:.85}
+  .stats{display:flex;gap:46px;margin-top:38px}
+  .stat .num{font-family:'Fraunces',serif;font-size:42px;color:var(--gold)}
+  .stat .lbl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.6;margin-top:4px}
+  @media(max-width:760px){.ethos{grid-template-columns:1fr;gap:40px}.ethos-card{padding:36px}}
+
+  /* CTA */
+  .cta{background:var(--gold);color:var(--char-deep);text-align:center}
+  .cta h2{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(2.6rem,6vw,5.4rem);line-height:1.02;margin-bottom:34px}
+  .cta h2 em{font-style:italic;font-weight:600}
+  .btn{display:inline-block;background:var(--char-deep);color:var(--paper);padding:22px 50px;border-radius:100px;text-decoration:none;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;transition:transform .3s,box-shadow .3s}
+  .btn:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(38,36,31,.35)}
+
+  /* FOOTER */
+  footer{background:var(--char-deep);color:var(--paper);padding:90px 0 40px}
+  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:50px;padding-bottom:60px;border-bottom:1px solid #4a4640}
+  .foot-logo{width:92px;height:92px;border-radius:50%;margin-bottom:22px}
+  .foot-grid p{font-family:'Cormorant Garamond',serif;font-size:18px;opacity:.7;max-width:300px;line-height:1.5}
+  .foot-col h5{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+  .foot-col a{display:block;color:var(--paper);text-decoration:none;opacity:.72;margin-bottom:12px;font-size:15px;transition:opacity .3s}
+  .foot-col a:hover{opacity:1}
+  .foot-base{display:flex;justify-content:space-between;margin-top:36px;font-size:13px;opacity:.5;flex-wrap:wrap;gap:12px}
+  @media(max-width:760px){.foot-grid{grid-template-columns:1fr;gap:34px}}
+
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="brand">D<span>B</span>B</div>
+  <ul class="navlinks">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#ethos">Studio</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</div></nav>
+
+<header>
+  <span class="hero-index">№ 01 — Creative Technical Services LLC.</span>
+  <div class="wrap">
+    <div class="eyebrow">Creative Technical Services</div>
+    <h1>Design.<br><span class="build">Build.</span><br><em>Beyond.</em></h1>
+    <div class="hero-foot">
+      <p class="hero-lede">A multidisciplinary studio turning ambitious briefs into spaces, structures, and systems that outlast the trend cycle.</p>
+    </div>
+  </div>
+  <span class="scroll-cue">Scroll</span>
+</header>
+
+<div class="strip"><div class="strip-track">
+  <span>Architecture &nbsp; Interiors &nbsp; Fit-Out &nbsp; Project Management &nbsp; Engineering &nbsp; Bespoke Joinery &nbsp;</span>
+  <span>Architecture &nbsp; Interiors &nbsp; Fit-Out &nbsp; Project Management &nbsp; Engineering &nbsp; Bespoke Joinery &nbsp;</span>
+</div></div>
+
+<section id="services" class="wrap">
+  <div class="sec-head reveal">
+    <div class="sec-num">( 01 ) — What we do</div>
+    <h2 class="sec-title">Six disciplines, <em>one</em> coherent vision from sketch to handover.</h2>
+  </div>
+  <div class="svc">
+    <div class="svc-row reveal"><span class="n">01</span><h3>Architectural Design</h3><p>Concept development, spatial planning and authority drawings grounded in how people actually move.</p><span class="arrow">↗</span></div>
+    <div class="svc-row reveal"><span class="n">02</span><h3>Interior Fit-Out</h3><p>Turnkey delivery of commercial and residential interiors with an obsessive eye for finish.</p><span class="arrow">↗</span></div>
+    <div class="svc-row reveal"><span class="n">03</span><h3>MEP & Engineering</h3><p>Mechanical, electrical and plumbing coordination engineered for performance, not just compliance.</p><span class="arrow">↗</span></div>
+    <div class="svc-row reveal"><span class="n">04</span><h3>Project Management</h3><p>A single point of accountability holding budget, programme and quality in tension.</p><span class="arrow">↗</span></div>
+    <div class="svc-row reveal"><span class="n">05</span><h3>Bespoke Joinery</h3><p>In-house workshop producing furniture and millwork drawn specifically for each project.</p><span class="arrow">↗</span></div>
+    <div class="svc-row reveal"><span class="n">06</span><h3>Maintenance</h3><p>Long-term care contracts that keep finished work performing for years beyond handover.</p><span class="arrow">↗</span></div>
+  </div>
+</section>
+
+<section id="work" class="work"><div class="wrap">
+  <div class="sec-head reveal">
+    <div class="sec-num" style="color:var(--gold)">( 02 ) — Selected work</div>
+    <h2 class="sec-title">Projects we were <em>proud</em> to put our name to.</h2>
+  </div>
+  <div class="grid">
+    <article class="proj p1 reveal"><span class="big-letter">D</span><span class="tag">Commercial · Dubai</span><h4>The Marwan Headquarters</h4></article>
+    <article class="proj p2 reveal"><span class="big-letter">B</span><span class="tag">Hospitality · Sharjah</span><h4>Courtyard Restaurant Fit-Out</h4></article>
+    <article class="proj p3 reveal"><span class="big-letter">B</span><span class="tag">Residential · Abu Dhabi</span><h4>Private Villa, Saadiyat</h4></article>
+    <article class="proj p4 reveal"><span class="big-letter">+</span><span class="tag">Retail · Dubai</span><h4>Flagship Showroom Programme</h4></article>
+  </div>
+</div></section>
+
+<section id="ethos" class="wrap">
+  <div class="ethos">
+    <div class="reveal">
+      <div class="sec-num">( 03 ) — The studio</div>
+      <p class="ethos-quote" style="margin-top:24px">We believe good building is <em>quiet engineering</em> dressed in considered design.</p>
+    </div>
+    <div class="ethos-card reveal">
+      <div class="badge">DBB</div>
+      <p>Founded on the conviction that design and construction should never be handed between strangers, DBB keeps the whole journey under one roof — so nothing gets lost in translation.</p>
+      <div class="stats">
+        <div class="stat"><div class="num">120+</div><div class="lbl">Projects delivered</div></div>
+        <div class="stat"><div class="num">14</div><div class="lbl">Years building</div></div>
+        <div class="stat"><div class="num">98%</div><div class="lbl">On-time handover</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="cta"><div class="wrap">
+  <h2 class="reveal">Have a brief?<br>Let's go <em>beyond</em> it.</h2>
+  <a href="#" class="btn reveal">Start a conversation</a>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <img class="foot-logo" src="logo.jpg" alt="DBB logo">
+      <p>DBB Creative Technical Services LLC — design, build, and everything beyond.</p>
+    </div>
+    <div class="foot-col">
+      <h5>Studio</h5>
+      <a href="#services">Services</a><a href="#work">Work</a><a href="#ethos">About</a>
+    </div>
+    <div class="foot-col">
+      <h5>Connect</h5>
+      <a href="#">hello@dbb.ae</a><a href="#">+971 4 000 0000</a><a href="#">Dubai, UAE</a>
+    </div>
+  </div>
+  <div class="foot-base">
+    <span>© 2026 DBB Creative Technical Services LLC.</span>
+    <span>Design · Build · Beyond</span>
+  </div>
+</div></footer>
+
+<script>
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4*0.08)+'s';io.observe(el)});
+</script>
+</body>
+</html>
