@@ -488,6 +488,27 @@
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
   document.querySelectorAll('.rv').forEach((el,i)=>{el.style.transitionDelay=(i%3*0.1)+'s';io.observe(el)});
 
+  // Touch handling for Projects Carousel (pause on touch, resume on release)
+  const carousel = document.querySelector('.proj-carousel');
+  if (carousel) {
+    const track = carousel.querySelector('.proj-track');
+
+    if (track) {
+      // Pause animation when user touches
+      carousel.addEventListener('touchstart', () => {
+        track.style.animationPlayState = 'paused';
+      }, { passive: true });
+
+      // Resume animation when user lifts finger
+      carousel.addEventListener('touchend', () => {
+        track.style.animationPlayState = 'running';
+      });
+
+      carousel.addEventListener('touchcancel', () => {
+        track.style.animationPlayState = 'running';
+      });
+    }
+  }
 </script>
 </body>
 </html>
