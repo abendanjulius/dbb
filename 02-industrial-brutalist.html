@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DBB / Creative Technical Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#211f1c; --bg2:#2b2926; --gold:#e0a93c; --gold-d:#caa044;
+    --line:#3d3a35; --txt:#e8e3d8; --mut:#8a857a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--txt);font-family:'Barlow Condensed',sans-serif;overflow-x:hidden}
+  ::selection{background:var(--gold);color:var(--bg)}
+  .mono{font-family:'Space Mono',monospace}
+  .wrap{max-width:1400px;margin:0 auto;padding:0 40px}
+  @media(max-width:760px){.wrap{padding:0 20px}}
+
+  /* grid overlay texture */
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:80px 80px;opacity:.18}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;z-index:60;background:rgba(33,31,28,.92);backdrop-filter:blur(10px);border-bottom:2px solid var(--gold)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:78px}
+  .logo{display:flex;align-items:center;gap:14px}
+  .logo img{width:48px;height:48px;border-radius:50%}
+  .logo b{font-family:'Anton',sans-serif;font-size:24px;letter-spacing:.05em}
+  .logo b i{font-style:normal;color:var(--gold)}
+  .nl{display:flex;gap:8px;list-style:none}
+  .nl a{display:block;padding:9px 16px;color:var(--txt);text-decoration:none;font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;border:1px solid transparent;transition:.2s}
+  .nl a:hover{border-color:var(--gold);color:var(--gold)}
+  @media(max-width:760px){.nl{display:none}}
+
+  /* HERO */
+  header{padding:160px 0 60px;position:relative;z-index:2}
+  .tagrow{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:30px}
+  .tag{border:1px solid var(--gold);color:var(--gold);padding:6px 14px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
+  .hero-h{font-family:'Anton',sans-serif;font-size:clamp(4rem,15vw,13rem);line-height:.84;letter-spacing:-.01em;text-transform:uppercase}
+  .hero-h .o{-webkit-text-stroke:2px var(--gold);color:transparent}
+  .hero-h .g{color:var(--gold)}
+  .hero-meta{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);margin-top:50px}
+  .hm{padding:24px;border-right:1px solid var(--line)}
+  .hm:last-child{border-right:none}
+  .hm .k{font-size:12px;letter-spacing:.15em;color:var(--mut);text-transform:uppercase}
+  .hm .v{font-family:'Anton',sans-serif;font-size:30px;color:var(--gold);margin-top:6px}
+  .hm p{font-size:15px;color:var(--mut);margin-top:6px;line-height:1.3}
+  @media(max-width:760px){.hero-meta{grid-template-columns:1fr 1fr}.hm{border-bottom:1px solid var(--line)}}
+
+  /* TICKER */
+  .ticker{background:var(--gold);color:var(--bg);overflow:hidden;border-top:2px solid var(--bg);border-bottom:2px solid var(--bg);position:relative;z-index:2}
+  .tk{display:flex;white-space:nowrap;animation:roll 24s linear infinite;padding:12px 0;font-family:'Anton',sans-serif;font-size:24px;letter-spacing:.04em;text-transform:uppercase}
+  .tk span{padding:0 30px}
+  @keyframes roll{to{transform:translateX(-50%)}}
+
+  /* SECTION */
+  section{padding:120px 0;position:relative;z-index:2}
+  .lbl-row{display:flex;align-items:center;gap:20px;margin-bottom:50px}
+  .lbl-row .idx{font-family:'Space Mono',monospace;color:var(--gold);font-size:14px}
+  .lbl-row h2{font-family:'Anton',sans-serif;font-size:clamp(2.4rem,6vw,5rem);text-transform:uppercase;letter-spacing:-.01em}
+  .lbl-row .line{flex:1;height:2px;background:var(--line)}
+
+  /* CAPABILITIES */
+  .caps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line)}
+  .cap{padding:42px 34px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transition:.3s;position:relative;overflow:hidden}
+  .cap:hover{background:var(--gold);color:var(--bg)}
+  .cap .num{font-family:'Space Mono',monospace;font-size:13px;opacity:.6}
+  .cap h3{font-family:'Anton',sans-serif;font-size:32px;text-transform:uppercase;margin:18px 0 12px}
+  .cap p{font-size:17px;line-height:1.4;color:var(--mut)}
+  .cap:hover p{color:var(--bg)}
+  .cap .arr{font-family:'Anton',sans-serif;font-size:40px;margin-top:20px;display:block}
+  @media(max-width:900px){.caps{grid-template-columns:1fr 1fr}}
+  @media(max-width:600px){.caps{grid-template-columns:1fr}}
+
+  /* PROCESS */
+  .proc{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+  .step{border:1px solid var(--line);padding:34px 26px;background:var(--bg2);position:relative;transition:.3s}
+  .step:hover{transform:translateY(-10px);border-color:var(--gold)}
+  .step .big{font-family:'Anton',sans-serif;font-size:90px;color:var(--line);line-height:.8}
+  .step h4{font-family:'Anton',sans-serif;font-size:22px;text-transform:uppercase;color:var(--gold);margin:14px 0 10px}
+  .step p{font-size:16px;color:var(--mut);line-height:1.4}
+  @media(max-width:900px){.proc{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.proc{grid-template-columns:1fr}}
+
+  /* PROJECTS */
+  .pj{display:flex;flex-direction:column;border:1px solid var(--line)}
+  .pjr{display:grid;grid-template-columns:60px 1.4fr 1fr 1fr 100px;border-bottom:1px solid var(--line);align-items:center;transition:.25s}
+  .pjr:last-child{border-bottom:none}
+  .pjr>div{padding:30px 22px}
+  .pjr:hover{background:var(--bg2)}
+  .pjr .id{font-family:'Space Mono',monospace;color:var(--gold);font-size:14px}
+  .pjr .nm{font-family:'Anton',sans-serif;font-size:28px;text-transform:uppercase}
+  .pjr .ty,.pjr .yr{color:var(--mut);font-size:16px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+  .pjr .st{text-align:right;font-family:'Space Mono',monospace;font-size:13px;color:var(--gold)}
+  .pjr.head{background:var(--gold);color:var(--bg)}
+  .pjr.head>div{padding:14px 22px}
+  .pjr.head *{color:var(--bg)!important;font-family:'Space Mono',monospace;font-size:12px!important;letter-spacing:.15em;text-transform:uppercase;font-weight:700}
+  @media(max-width:760px){.pjr{grid-template-columns:1fr;border-bottom:1px solid var(--line)}.pjr>div{padding:8px 18px}.pjr.head{display:none}.pjr .st{text-align:left}}
+
+  /* CTA */
+  .cta{border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);text-align:center;background:var(--bg2)}
+  .cta h2{font-family:'Anton',sans-serif;font-size:clamp(3rem,9vw,8rem);text-transform:uppercase;line-height:.9;margin-bottom:30px}
+  .cta h2 .o{-webkit-text-stroke:2px var(--gold);color:transparent}
+  .cbtn{display:inline-block;background:var(--gold);color:var(--bg);padding:22px 56px;font-family:'Anton',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:.06em;text-decoration:none;border:2px solid var(--gold);transition:.25s}
+  .cbtn:hover{background:transparent;color:var(--gold)}
+
+  /* FOOTER */
+  footer{padding:80px 0 36px;position:relative;z-index:2}
+  .fg{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;border-bottom:1px solid var(--line);padding-bottom:50px}
+  .fg img{width:80px;border-radius:50%;margin-bottom:18px}
+  .fg p{color:var(--mut);font-size:16px;line-height:1.4;max-width:280px}
+  .fc h5{font-family:'Anton',sans-serif;color:var(--gold);text-transform:uppercase;font-size:18px;margin-bottom:16px}
+  .fc a{display:block;color:var(--txt);text-decoration:none;font-size:16px;margin-bottom:9px;font-weight:600;transition:.2s}
+  .fc a:hover{color:var(--gold)}
+  .fb{display:flex;justify-content:space-between;padding-top:28px;font-family:'Space Mono',monospace;font-size:12px;color:var(--mut);flex-wrap:wrap;gap:10px}
+  @media(max-width:760px){.fg{grid-template-columns:1fr 1fr}}
+
+  .rv{opacity:0;transform:translateY(30px);transition:.7s cubic-bezier(.2,.7,.2,1)}
+  .rv.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="logo"><img src="logo.jpg" alt=""><b>D<i>B</i>B</b></div>
+  <ul class="nl">
+    <li><a href="#cap">Capabilities</a></li>
+    <li><a href="#proc">Process</a></li>
+    <li><a href="#pj">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</div></nav>
+
+<header><div class="wrap">
+  <div class="tagrow">
+    <span class="tag">EST. 2012</span>
+    <span class="tag">Dubai · UAE</span>
+    <span class="tag">Technical Services LLC</span>
+  </div>
+  <h1 class="hero-h">DESIGN<br><span class="o">BUILD</span><br><span class="g">BEYOND</span></h1>
+  <div class="hero-meta">
+    <div class="hm"><div class="k">Discipline</div><div class="v">Build</div><p>Civil & fit-out contracting</p></div>
+    <div class="hm"><div class="k">Coverage</div><div class="v">UAE</div><p>All seven emirates</p></div>
+    <div class="hm"><div class="k">Delivered</div><div class="v">120+</div><p>Completed projects</p></div>
+    <div class="hm"><div class="k">Crew</div><div class="v">60+</div><p>In-house specialists</p></div>
+  </div>
+</div></header>
+
+<div class="ticker"><div class="tk">
+  <span>★ DESIGN</span><span>★ BUILD</span><span>★ BEYOND</span><span>★ FIT-OUT</span><span>★ MEP</span><span>★ JOINERY</span>
+  <span>★ DESIGN</span><span>★ BUILD</span><span>★ BEYOND</span><span>★ FIT-OUT</span><span>★ MEP</span><span>★ JOINERY</span>
+</div></div>
+
+<section id="cap"><div class="wrap">
+  <div class="lbl-row rv"><span class="idx">[ 01 ]</span><h2>Capabilities</h2><span class="line"></span></div>
+  <div class="caps">
+    <div class="cap rv"><span class="num">01 / 06</span><h3>Civil Works</h3><p>Structural builds, extensions and groundworks executed to spec.</p><span class="arr">→</span></div>
+    <div class="cap rv"><span class="num">02 / 06</span><h3>Fit-Out</h3><p>Commercial and retail interiors delivered turnkey.</p><span class="arr">→</span></div>
+    <div class="cap rv"><span class="num">03 / 06</span><h3>MEP Systems</h3><p>HVAC, electrical and plumbing — designed and installed.</p><span class="arr">→</span></div>
+    <div class="cap rv"><span class="num">04 / 06</span><h3>Joinery</h3><p>Custom millwork from an in-house workshop.</p><span class="arr">→</span></div>
+    <div class="cap rv"><span class="num">05 / 06</span><h3>Project Mgmt</h3><p>One contract, one timeline, one point of accountability.</p><span class="arr">→</span></div>
+    <div class="cap rv"><span class="num">06 / 06</span><h3>Maintenance</h3><p>Facility care contracts that keep assets running.</p><span class="arr">→</span></div>
+  </div>
+</div></section>
+
+<section id="proc" style="background:var(--bg2)"><div class="wrap">
+  <div class="lbl-row rv"><span class="idx">[ 02 ]</span><h2>How We Work</h2><span class="line"></span></div>
+  <div class="proc">
+    <div class="step rv"><div class="big">01</div><h4>Scope</h4><p>Site survey, brief lock-down and a costed proposal with no surprises.</p></div>
+    <div class="step rv"><div class="big">02</div><h4>Design</h4><p>Drawings, approvals and material selection signed off before tools move.</p></div>
+    <div class="step rv"><div class="big">03</div><h4>Build</h4><p>Self-performed trades, weekly reporting and rigorous QA checks.</p></div>
+    <div class="step rv"><div class="big">04</div><h4>Handover</h4><p>Snag-free delivery, documentation and an ongoing care plan.</p></div>
+  </div>
+</div></section>
+
+<section id="pj"><div class="wrap">
+  <div class="lbl-row rv"><span class="idx">[ 03 ]</span><h2>Project Log</h2><span class="line"></span></div>
+  <div class="pj rv">
+    <div class="pjr head"><div>ID</div><div>Project</div><div>Type</div><div>Year</div><div>Status</div></div>
+    <div class="pjr"><div class="id">DBB-118</div><div class="nm">Marwan HQ Tower</div><div class="ty">Civil + Fit-Out</div><div class="yr">2025</div><div class="st">DELIVERED</div></div>
+    <div class="pjr"><div class="id">DBB-121</div><div class="nm">Courtyard F&B Unit</div><div class="ty">Hospitality</div><div class="yr">2025</div><div class="st">DELIVERED</div></div>
+    <div class="pjr"><div class="id">DBB-124</div><div class="nm">Saadiyat Villa</div><div class="ty">Residential</div><div class="yr">2026</div><div class="st">ON SITE</div></div>
+    <div class="pjr"><div class="id">DBB-126</div><div class="nm">Showroom Rollout</div><div class="ty">Retail</div><div class="yr">2026</div><div class="st">DESIGN</div></div>
+  </div>
+</div></section>
+
+<section id="contact" class="cta"><div class="wrap">
+  <h2 class="rv">LET'S<br><span class="o">BUILD</span></h2>
+  <a href="#" class="cbtn rv">Request a Quote →</a>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fg">
+    <div><img src="logo.jpg" alt=""><p>DBB Creative Technical Services LLC. Design, build and everything beyond — across the UAE.</p></div>
+    <div class="fc"><h5>Sitemap</h5><a href="#cap">Capabilities</a><a href="#proc">Process</a><a href="#pj">Projects</a></div>
+    <div class="fc"><h5>Contact</h5><a href="#">hello@dbb.ae</a><a href="#">+971 4 000 0000</a></div>
+    <div class="fc"><h5>Find Us</h5><a href="#">Al Quoz, Dubai</a><a href="#">United Arab Emirates</a></div>
+  </div>
+  <div class="fb"><span>© 2026 DBB CREATIVE TECHNICAL SERVICES LLC.</span><span>DESIGN / BUILD / BEYOND</span></div>
+</div></footer>
+
+<script>
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+  document.querySelectorAll('.rv').forEach((el,i)=>{el.style.transitionDelay=(i%3*0.09)+'s';io.observe(el)});
+</script>
+</body>
+</html>
