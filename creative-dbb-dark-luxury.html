@@ -58,7 +58,12 @@
   .glow-circle::before{content:"";position:absolute;inset:60px;border:1px solid var(--line);border-radius:50%}
   .hero-c{position:relative;text-align:center;width:100%}
   .pre{font-size:13px;letter-spacing:.5em;text-transform:uppercase;color:var(--gold);margin-bottom:30px}
-  .hero-c h1{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(3.6rem,11vw,10rem);line-height:.95}
+  .hero-c h1{
+    font-family:'Cormorant Garamond',serif;
+    font-weight:300;
+    font-size:clamp(2.6rem, 7vw, 5.2rem);
+    line-height:1.1;
+  }
   .hero-c h1 .l{display:block}
   .hero-c h1 em{font-style:italic;color:var(--gold)}
   .hero-c .sub{max-width:540px;margin:34px auto 0;font-weight:300;font-size:18px;line-height:1.6;color:var(--mut)}
@@ -159,7 +164,7 @@
     display: flex;
     gap: 20px;
     width: max-content;
-    animation: marquee 50s linear infinite;
+    animation: marquee 35s linear infinite;
   }
 
   .proj-carousel:hover .proj-track {
