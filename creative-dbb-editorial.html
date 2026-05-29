@@ -91,6 +91,53 @@
   .proj-with-image::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(20,19,16,.88));z-index:1}
   @media(max-width:760px){.p1,.p2,.p3,.p4{grid-column:span 12}}
 
+  /* PROJECT CAROUSEL */
+  .proj-carousel {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+  }
+  .proj-track {
+    display: flex;
+    gap: 20px;
+    width: max-content;
+    animation: marquee 32s linear infinite;
+  }
+  .proj-carousel:hover .proj-track {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .proj-card {
+    flex: 0 0 280px;
+    background: var(--char-deep);
+    border: 1px solid #3a3630;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+  .proj-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+  }
+  .proj-info {
+    padding: 16px 18px;
+  }
+  .proj-name {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    color: var(--paper);
+    margin-bottom: 4px;
+  }
+  .proj-loc {
+    font-size: 13px;
+    color: var(--gold);
+    opacity: 0.85;
+  }
+
   /* ETHOS */
   .ethos{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
   .ethos-quote{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(1.8rem,3.4vw,3rem);line-height:1.22}
@@ -143,7 +190,7 @@
     <div class="eyebrow">Creative Technical Services</div>
     <h1>Design.<br><span class="build">Build.</span><br><em>Beyond.</em></h1>
     <div class="hero-foot">
-      <p class="hero-lede">A multidisciplinary studio turning ambitious briefs into spaces, structures, and systems that outlast the trend cycle.</p>
+      <p class="hero-lede">The trusted partner for visionary brands that demand flawless execution.</p>
     </div>
   </div>
   <span class="scroll-cue">Scroll</span>
@@ -211,6 +258,81 @@
       </div>
     </article>
   </div>
+
+  <!-- PROJECTS CAROUSEL (same as Dark Luxury) -->
+  <div class="proj-carousel-wrap" style="margin-top:60px;">
+    <div class="sec-head reveal" style="margin-bottom:24px;">
+      <div class="sec-num" style="color:var(--gold)">( 03 ) — Featured across the region</div>
+    </div>
+
+    <div class="proj-carousel">
+      <div class="proj-track">
+        <!-- Project 1 -->
+        <div class="proj-card">
+          <img src="images/clivev2.webp" alt="Clive Christian">
+          <div class="proj-info">
+            <div class="proj-name">Clive Christian</div>
+            <div class="proj-loc">Dubai, UAE</div>
+          </div>
+        </div>
+        <!-- Project 2 -->
+        <div class="proj-card">
+          <img src="images/caron.webp" alt="Caron Paris">
+          <div class="proj-info">
+            <div class="proj-name">Caron Paris</div>
+            <div class="proj-loc">Dubai, UAE</div>
+          </div>
+        </div>
+        <!-- Project 3 -->
+        <div class="proj-card">
+          <img src="images/lodore.webp" alt="L'Odore">
+          <div class="proj-info">
+            <div class="proj-name">L'Odore</div>
+            <div class="proj-loc">Riyadh, KSA</div>
+          </div>
+        </div>
+        <!-- Project 4 -->
+        <div class="proj-card">
+          <img src="images/shrimppot.webp" alt="ShrimpPot">
+          <div class="proj-info">
+            <div class="proj-name">ShrimpPot</div>
+            <div class="proj-loc">Abu Dhabi, UAE</div>
+          </div>
+        </div>
+
+        <!-- Duplicated for seamless loop -->
+        <div class="proj-card">
+          <img src="images/clivev2.webp" alt="Clive Christian">
+          <div class="proj-info">
+            <div class="proj-name">Clive Christian</div>
+            <div class="proj-loc">Dubai, UAE</div>
+          </div>
+        </div>
+        <div class="proj-card">
+          <img src="images/caron.webp" alt="Caron Paris">
+          <div class="proj-info">
+            <div class="proj-name">Caron Paris</div>
+            <div class="proj-loc">Dubai, UAE</div>
+          </div>
+        </div>
+        <div class="proj-card">
+          <img src="images/lodore.webp" alt="L'Odore">
+          <div class="proj-info">
+            <div class="proj-name">L'Odore</div>
+            <div class="proj-loc">Riyadh, KSA</div>
+          </div>
+        </div>
+        <div class="proj-card">
+          <img src="images/shrimppot.webp" alt="ShrimpPot">
+          <div class="proj-info">
+            <div class="proj-name">ShrimpPot</div>
+            <div class="proj-loc">Abu Dhabi, UAE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div></section>
 
 <section id="ethos" class="wrap">
@@ -262,6 +384,35 @@
 <script>
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
   document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4*0.08)+'s';io.observe(el)});
+
+  // Project Carousel - Auto scroll + Pause on hover/touch
+  const carousel = document.querySelector('.proj-carousel');
+  if (carousel) {
+    const track = carousel.querySelector('.proj-track');
+
+    // Pause on hover (desktop)
+    carousel.addEventListener('mouseenter', () => {
+      track.style.animationPlayState = 'paused';
+    });
+    carousel.addEventListener('mouseleave', () => {
+      track.style.animationPlayState = 'running';
+    });
+
+    // Pause on touch (mobile)
+    let touchTimeout;
+    carousel.addEventListener('touchstart', () => {
+      track.style.animationPlayState = 'paused';
+      clearTimeout(touchTimeout);
+    });
+    carousel.addEventListener('touchend', () => {
+      touchTimeout = setTimeout(() => {
+        track.style.animationPlayState = 'running';
+      }, 800);
+    });
+    carousel.addEventListener('touchcancel', () => {
+      track.style.animationPlayState = 'running';
+    });
+  }
 </script>
 </body>
 </html>
