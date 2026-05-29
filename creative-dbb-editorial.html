@@ -85,6 +85,10 @@
   .p3{grid-column:span 5;background:linear-gradient(135deg,#3a3934,#211f1b)}
   .p4{grid-column:span 7;background:linear-gradient(135deg,#5a4a2a,#2e2a22)}
   .proj .big-letter{position:absolute;top:-30px;right:10px;font-family:'Fraunces',serif;font-size:200px;font-weight:600;color:rgba(224,169,60,.12);z-index:1;line-height:1}
+
+  .proj-with-image .proj-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+  .proj-with-image .proj-content{position:relative;z-index:2}
+  .proj-with-image::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(20,19,16,.88));z-index:1}
   @media(max-width:760px){.p1,.p2,.p3,.p4{grid-column:span 12}}
 
   /* ETHOS */
@@ -171,11 +175,13 @@
     <h2 class="sec-title">Projects we were <em>proud</em> to put our name to.</h2>
   </div>
   <div class="grid">
-    <!-- Clive Christian (with big image) -->
-    <article class="proj p1 reveal proj-img">
-      <img src="images/clivev2.webp" alt="Clive Christian Perfumery Boutique">
-      <span class="tag">Perfumery · Boutique</span>
-      <h4>Clive Christian</h4>
+    <!-- Clive Christian -->
+    <article class="proj p1 reveal proj-with-image">
+      <img src="images/clivev2.webp" alt="Clive Christian" class="proj-bg">
+      <div class="proj-content">
+        <span class="tag">Perfumery · Boutique</span>
+        <h4>Clive Christian</h4>
+      </div>
     </article>
 
     <!-- Caron Paris -->
@@ -185,14 +191,13 @@
       <h4>Caron Paris</h4>
     </article>
 
-    <!-- L'Odore (with big image) -->
-    <article class="proj p3 reveal proj-img">
-      <picture>
-        <source srcset="images/lodore.webp" type="image/webp">
-        <img src="images/lodore.jpg" alt="L'Odore Perfumery Boutique">
-      </picture>
-      <span class="tag">Perfumery · Retail Fit-Out</span>
-      <h4>L'Odore</h4>
+    <!-- L'Odore -->
+    <article class="proj p3 reveal proj-with-image">
+      <img src="images/lodore.webp" alt="L'Odore" class="proj-bg">
+      <div class="proj-content">
+        <span class="tag">Perfumery · Retail Fit-Out</span>
+        <h4>L'Odore</h4>
+      </div>
     </article>
 
     <!-- ShrimpPot -->
