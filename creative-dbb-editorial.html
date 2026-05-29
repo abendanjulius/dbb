@@ -20,7 +20,8 @@
   @media(max-width:760px){.wrap{padding:0 22px}}
 
   /* NAV */
-  nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(255,255,255,0.92);backdrop-filter:blur(8px)}
+  nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .3s ease, box-shadow .3s ease}
+  nav.scrolled{background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);box-shadow:0 2px 20px rgba(0,0,0,0.08)}
   nav .wrap{display:flex;align-items:center;justify-content:space-between;height:96px}
   .brand{display:block;line-height:0}
   .brand img{width:62px;height:62px;border-radius:50%;display:block}
@@ -150,7 +151,7 @@
   .ethos-quote{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(1.8rem,3.4vw,3rem);line-height:1.22}
   .ethos-quote em{font-style:italic;color:var(--gold)}
   .ethos-card{background:var(--char);color:var(--paper);padding:54px;border-radius:4px;position:relative}
-  .ethos-card .badge{width:96px;height:96px;border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:32px;color:var(--gold);margin-bottom:30px}
+  .ethos-logo{width:96px;height:96px;border-radius:50%;margin-bottom:30px;object-fit:cover;border:2px solid var(--gold)}
   .ethos-card p{font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.55;opacity:.85}
   .stats{display:flex;gap:46px;margin-top:38px;justify-content:center}
   .stat{text-align:center}
@@ -350,7 +351,7 @@
       <p class="ethos-quote" style="margin-top:24px">The project partner for businesses that want <em>clarity, coordination, and confidence</em> from concept to completion.</p>
     </div>
     <div class="ethos-card reveal">
-      <div class="badge">DBB</div>
+      <img src="images/dbb-logo.png" alt="Creative DBB" class="ethos-logo">
       <p>Founded on the conviction that design and construction should never be handed between strangers, DBB keeps the whole journey under one roof — so nothing gets lost in translation.</p>
       <div class="stats">
         <div class="stat"><div class="num">20+</div><div class="lbl">Years of Experience</div></div>
@@ -434,6 +435,16 @@
       track.style.animationPlayState = 'running';
     });
   }
+
+  // Sticky nav - white background only after scrolling
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 80) {
+      nav.classList.add('scrolled');
+    } else {
+      nav.classList.remove('scrolled');
+    }
+  });
 </script>
 </body>
 </html>
