@@ -1,8 +1,16 @@
 [
   {
+    "id": 5,
+    "name": "Ayurvedic Research Clinic",
+    "tag": "International Hospitality",
+    "location": "Dubai,. UAE",
+    "image": "images/project-1780141463064-0.webp",
+    "description": "Located right in Sharjah (near Green Belt Park), this is one of the UAE’s most established authentic Kerala-style networks."
+  },
+  {
     "id": 1,
     "name": "Clive Christian",
-    "tag": "Perfumery · Boutique",
+    "tag": "",
     "location": "Dubai Mall, UAE",
     "image": "images/clivev2.webp",
     "description": "Flagship perfumery boutique featuring exclusive Clive Christian fragrances and bespoke interiors."
@@ -10,7 +18,7 @@
   {
     "id": 2,
     "name": "CARON Paris",
-    "tag": "Perfumery · Heritage",
+    "tag": "",
     "location": "Dubai, UAE",
     "image": "images/caron.webp",
     "description": "Heritage French perfumery boutique with elegant design and timeless fragrance collections."
@@ -18,7 +26,7 @@
   {
     "id": 3,
     "name": "L'Odore",
-    "tag": "Perfumery · Modern",
+    "tag": "",
     "location": "Riyadh, KSA",
     "image": "images/lodore.webp",
     "description": "Contemporary perfumery destination showcasing curated scents in a refined architectural setting."
@@ -26,7 +34,7 @@
   {
     "id": 4,
     "name": "ShrimpPot",
-    "tag": "F&B · Multi-Location",
+    "tag": "",
     "location": "Abu Dhabi, UAE",
     "image": "images/shrimppot.webp",
     "description": "Popular seafood restaurant chain with vibrant, nautical-themed interiors across multiple locations."
