@@ -24,8 +24,11 @@
 <h1>Creative DBB — Admin Panel</h1>
 <p class="warning">This admin uses a GitHub token. Changes will be committed directly to your repository.</p>
 
-<div style="margin-bottom: 20px;">
+<div style="margin-bottom: 20px; display: flex; gap: 12px; align-items: center;">
   <button class="btn" onclick="addNewProject()" style="background:#333; color:#ddd;">+ Add New Project</button>
+  <button onclick="changeToken()" style="background:#444; color:#ddd; border:none; padding:10px 16px; border-radius:4px; cursor:pointer; font-size:13px;">
+    Change GitHub Token
+  </button>
 </div>
 
 <div id="projects-container"></div>
@@ -38,15 +41,79 @@
   Note: Only the <strong>latest 4 projects</strong> (sorted by newest first) will appear on the website.
 </p>
 
+<!-- Token Input Modal -->
+<div id="token-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#1f1f1f; padding:40px; border-radius:12px; width:90%; max-width:480px; border:1px solid #444;">
+    <h2 style="margin-top:0; color:#e0a93c;">Enter GitHub Token</h2>
+    <p style="color:#aaa; font-size:14px; line-height:1.5;">
+      Please paste your <strong>Fine-grained GitHub Personal Access Token</strong>.<br>
+      It needs <strong>Contents: Read and write</strong> permission on your repository only.
+    </p>
+
+    <input type="password" id="token-input" placeholder="github_pat_..." 
+           style="width:100%; padding:14px; background:#111; border:1px solid #555; color:#ddd; border-radius:6px; margin:20px 0; font-family:monospace;">
+
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button onclick="saveToken()" class="btn" style="padding:12px 28px;">Save Token</button>
+    </div>
+
+    <p style="font-size:12px; color:#666; margin-top:20px;">
+      Your token is stored only in your browser (localStorage). It is never sent to any server.
+    </p>
+  </div>
+</div>
+
 <script>
 // ==================== CONFIGURATION ====================
-const GITHUB_TOKEN = "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";
 const REPO_OWNER = "abendanjulius";
 const REPO_NAME = "dbb";
 const BRANCH = "main";
 
 // Current projects data (will be loaded from projects.json)
 let projects = [];
+
+// Get token from localStorage
+function getToken() {
+  return localStorage.getItem('github_token');
+}
+
+// Save token to localStorage
+function saveToken() {
+  const input = document.getElementById('token-input').value.trim();
+  if (!input) {
+    alert("Please enter a valid token.");
+    return;
+  }
+  localStorage.setItem('github_token', input);
+  document.getElementById('token-modal').style.display = 'none';
+  alert("Token saved successfully! You can now use the admin.");
+}
+
+// Show token modal
+function showTokenModal() {
+  document.getElementById('token-modal').style.display = 'flex';
+}
+
+// Allow user to change token
+function changeToken() {
+  const current = getToken();
+  if (current) {
+    if (!confirm("Do you want to replace the current GitHub token?")) return;
+  }
+  document.getElementById('token-input').value = current || '';
+  showTokenModal();
+}
+
+// Check token on page load
+function checkTokenOnLoad() {
+  const token = getToken();
+  if (!token) {
+    showTokenModal();
+  } else {
+    // Optionally validate token here in the future
+    console.log("GitHub token found in localStorage.");
+  }
+}
 
 // Store converted WebP images temporarily { index: { base64, filename } }
 let convertedImages = {};
@@ -262,13 +329,19 @@ async function publishChanges() {
 
 // Upload file to GitHub using Contents API
 async function uploadFileToGitHub(path, contentBase64, commitMessage) {
+  const token = getToken();
+  if (!token) {
+    alert("GitHub token is missing. Please enter it using the 'Change GitHub Token' button.");
+    throw new Error("No GitHub token found");
+  }
+
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
 
   // First, try to get existing file SHA (required for updates)
   let sha = null;
   try {
     const getRes = await fetch(url, {
-      headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+      headers: { 'Authorization': `token ${token}` }
     });
     if (getRes.ok) {
       const data = await getRes.json();
@@ -286,7 +359,7 @@ async function uploadFileToGitHub(path, contentBase64, commitMessage) {
   const res = await fetch(url, {
     method: 'PUT',
     headers: {
-      'Authorization': `token ${GITHUB_TOKEN}`,
+      'Authorization': `token ${token}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(body)
@@ -301,6 +374,7 @@ async function uploadFileToGitHub(path, contentBase64, commitMessage) {
 
 // Initialize
 loadProjects();
+checkTokenOnLoad();
 </script>
 
 </body>
