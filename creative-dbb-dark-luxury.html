@@ -276,7 +276,8 @@
     <div class="divider"></div>
   </div>
 
-  <div class="sc-item">
+  <!-- Dynamically populated from projects.json -->
+  <div id="main-featured-projects"></div>
     <div class="sc-visual v1 rv">
       <picture>
         <source srcset="images/clivev2.webp" type="image/webp">
@@ -460,6 +461,44 @@
 
   // Load featured projects on page load
   loadFeaturedProjects();
+
+  // Load main "Selected Work" featured projects (big cards)
+  async function loadMainFeaturedProjects() {
+    try {
+      const res = await fetch('projects.json');
+      let allProjects = await res.json();
+
+      allProjects.sort((a, b) => b.id - a.id);
+      const latest = allProjects.slice(0, 4);
+
+      const container = document.getElementById('main-featured-projects');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      latest.forEach((project, idx) => {
+        const item = document.createElement('div');
+        item.className = 'sc-item';
+
+        item.innerHTML = `
+          <div class="sc-visual rv">
+            <img src="${project.image}" alt="${project.name}" loading="lazy">
+            <span class="vt">${project.tag || 'Project'}</span>
+          </div>
+          <div class="sc-text rv">
+            <div class="pn">${project.name}</div>
+            <h3>${project.name}</h3>
+            <p>${project.description || ''}</p>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    } catch (err) {
+      console.error('Failed to load main featured projects:', err);
+    }
+  }
+
+  loadMainFeaturedProjects();
 
   // Touch handling for Projects Carousel (pause on touch, resume on release)
   // (Also initialized inside loadFeaturedProjects for dynamic content)
