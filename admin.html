@@ -48,6 +48,9 @@ const BRANCH = "main";
 // Current projects data (will be loaded from projects.json)
 let projects = [];
 
+// Store converted WebP images temporarily { index: { base64, filename } }
+let convertedImages = {};
+
 // Load existing projects.json
 async function loadProjects() {
   try {
@@ -77,8 +80,21 @@ function renderAdminForm() {
       <label>Project Name</label>
       <input type="text" id="name-${index}" value="${project.name || ''}">
 
-      <label>Tag (e.g. Perfumery · Boutique)</label>
-      <input type="text" id="tag-${index}" value="${project.tag || ''}">
+      <label>Tag</label>
+      <select id="tag-${index}">
+        <option value="">-- Select Tag --</option>
+        <option value="Perfumery · Boutique">Perfumery · Boutique</option>
+        <option value="Perfumery · Heritage">Perfumery · Heritage</option>
+        <option value="Perfumery · Modern">Perfumery · Modern</option>
+        <option value="F&B · Multi-Location">F&B · Multi-Location</option>
+        <option value="F&B Excellence">F&B Excellence</option>
+        <option value="Luxury Retail">Luxury Retail</option>
+        <option value="International Hospitality">International Hospitality</option>
+        <option value="Project Management">Project Management</option>
+        <option value="Architectural Design">Architectural Design</option>
+        <option value="Interior Fit-Out">Interior Fit-Out</option>
+        <option value="Bespoke Joinery">Bespoke Joinery</option>
+      </select>
 
       <label>Location</label>
       <input type="text" id="location-${index}" value="${project.location || ''}">
@@ -91,8 +107,9 @@ function renderAdminForm() {
         <img src="${project.image}" class="image-preview" style="max-height:160px; object-fit:cover;">
       ` : ''}
 
-      <label>Upload New Image (will be converted to WebP)</label>
-      <input type="file" id="image-${index}" accept="image/*">
+      <label>Upload New Image</label>
+      <input type="file" id="image-${index}" accept="image/*" onchange="handleImageUpload(this, ${index})">
+      <div id="conversion-status-${index}" style="font-size:13px; color:#e0a93c; margin-top:6px; display:none;"></div>
     `;
     container.appendChild(div);
   });
@@ -119,6 +136,57 @@ function deleteProject(index) {
   if (!confirm("Delete this project?")) return;
   projects.splice(index, 1);
   renderAdminForm();
+}
+
+// Convert and store image immediately after upload
+async function handleImageUpload(input, index) {
+  const statusDiv = document.getElementById(`conversion-status-${index}`);
+  if (!input.files.length) return;
+
+  const file = input.files[0];
+  statusDiv.style.display = 'block';
+  statusDiv.style.color = '#e0a93c';
+  statusDiv.innerHTML = `Converting <strong>${file.name}</strong> to WebP...`;
+
+  try {
+    // Actual conversion happens here
+    const webpBase64 = await convertToWebP(file);
+    const newFileName = `images/project-${Date.now()}-${index}.webp`;
+
+    // Store converted image
+    convertedImages[index] = {
+      base64: webpBase64,
+      filename: newFileName
+    };
+
+    statusDiv.innerHTML = `✓ Converted to WebP • Ready to publish`;
+    statusDiv.style.color = '#4ade80';
+
+    // Optional: Show small preview of converted image
+    showWebPPreview(index, webpBase64);
+
+  } catch (err) {
+    statusDiv.innerHTML = `Error converting image`;
+    statusDiv.style.color = '#f87171';
+    console.error(err);
+  }
+}
+
+// Show a small preview of the converted WebP
+function showWebPPreview(index, webpBase64) {
+  const statusDiv = document.getElementById(`conversion-status-${index}`);
+  if (!statusDiv) return;
+
+  const previewImg = document.createElement('img');
+  previewImg.src = `data:image/webp;base64,${webpBase64}`;
+  previewImg.style.cssText = 'max-width:120px; max-height:80px; margin-top:8px; border:1px solid #444; border-radius:4px; display:block;';
+
+  // Remove old preview if exists
+  const oldPreview = statusDiv.querySelector('.webp-preview');
+  if (oldPreview) oldPreview.remove();
+
+  previewImg.className = 'webp-preview';
+  statusDiv.appendChild(previewImg);
 }
 
 // Convert image file to WebP and return as base64
@@ -158,19 +226,17 @@ async function publishChanges() {
       project.description = document.getElementById(`description-${index}`).value;
     });
 
-    // Handle image uploads for projects that have new images
+    // Upload pre-converted images (if user uploaded new ones)
     for (let i = 0; i < projects.length; i++) {
-      const fileInput = document.getElementById(`image-${i}`);
-      if (fileInput && fileInput.files.length > 0) {
-        statusEl.innerHTML = `Converting image for project ${i + 1}...`;
-        const webpBase64 = await convertToWebP(fileInput.files[0]);
-        
-        // Generate new filename
-        const newFileName = `images/project-${Date.now()}-${i}.webp`;
-        projects[i].image = newFileName;
+      if (convertedImages[i]) {
+        const { base64, filename } = convertedImages[i];
+        projects[i].image = filename;
 
-        // Upload image to GitHub
-        await uploadFileToGitHub(newFileName, webpBase64, `Add new image for ${projects[i].name}`);
+        statusEl.innerHTML = `Uploading image for project ${i + 1}...`;
+        await uploadFileToGitHub(filename, base64, `Add new image for ${projects[i].name}`);
+
+        // Clear after upload
+        delete convertedImages[i];
       }
     }
 
