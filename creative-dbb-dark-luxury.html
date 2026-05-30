@@ -99,6 +99,35 @@
   .sc-item{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center;margin-bottom:120px}
   .sc-item:last-child{margin-bottom:0}
   .sc-item:nth-child(even) .sc-visual{order:2}
+
+  /* Refinements for dynamically generated main featured projects */
+  #main-featured-projects .sc-item {
+    margin-bottom: 100px;
+    gap: 60px;
+  }
+  #main-featured-projects .sc-item:last-child {
+    margin-bottom: 0;
+  }
+  #main-featured-projects .sc-visual {
+    overflow: hidden;
+    border-radius: 4px;
+  }
+  #main-featured-projects .sc-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  #main-featured-projects .sc-text {
+    padding: 10px 0;
+  }
+  #main-featured-projects .sc-text h3 {
+    margin-bottom: 16px;
+    line-height: 1.15;
+  }
+  #main-featured-projects .sc-text p {
+    line-height: 1.65;
+  }
   .sc-visual {
     aspect-ratio: 4 / 3;
     border: 1px solid var(--line);
