@@ -480,11 +480,11 @@
         const item = document.createElement('div');
         item.className = 'sc-item';
 
-        // Use original-style visual classes for alternating layout
-        const visualClass = `v${(idx % 4) + 1}`;
+        // Force alternating layout (image left vs right) like the original
+        const visualStyle = (idx % 2 === 0) ? '' : 'style="order: 2;"';
 
         item.innerHTML = `
-          <div class="sc-visual ${visualClass} rv">
+          <div class="sc-visual rv" ${visualStyle}>
             <picture>
               <source srcset="${project.image}" type="image/webp">
               <img src="${project.image}" alt="${project.name}" width="1200" height="800" loading="lazy">
