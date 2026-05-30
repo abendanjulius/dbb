@@ -480,9 +480,15 @@
         const item = document.createElement('div');
         item.className = 'sc-item';
 
+        // Use original-style visual classes for alternating layout
+        const visualClass = `v${(idx % 4) + 1}`;
+
         item.innerHTML = `
-          <div class="sc-visual rv">
-            <img src="${project.image}" alt="${project.name}" loading="lazy">
+          <div class="sc-visual ${visualClass} rv">
+            <picture>
+              <source srcset="${project.image}" type="image/webp">
+              <img src="${project.image}" alt="${project.name}" width="1200" height="800" loading="lazy">
+            </picture>
             <span class="vt">${project.tag || 'Project'}</span>
           </div>
           <div class="sc-text rv">
