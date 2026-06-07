@@ -110,9 +110,15 @@
   }
   .post-tab:hover{color:var(--txt)}
   .post-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
-  .post-item.static{cursor:default}
-  .post-item.static:hover{border-color:var(--line);background:var(--black)}
+  .post-item.slot-item{cursor:pointer}
+  .post-item.slot-item:hover,.post-item.slot-item.selected-slot{border-color:var(--gold);background:var(--black3)}
+  .post-item.slot-item.empty{opacity:.75}
   .post-item .pi-slot{font-size:10px;letter-spacing:.16em;color:var(--gold-l);text-transform:uppercase;margin-bottom:4px}
+
+  .home-slot-editor{margin-top:16px;padding:20px;border:1px solid var(--line);background:var(--black)}
+  .home-slot-editor h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);font-weight:400;margin-bottom:6px}
+  .home-slot-editor .slot-current{color:var(--mut);font-size:14px;line-height:1.5;margin-bottom:16px}
+  .home-slot-editor .slot-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 
   /* LOGIN */
   .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px;position:relative;z-index:1}
@@ -256,6 +262,20 @@
           </div>
           <p class="hint" id="tab-hint" style="margin-bottom:14px"></p>
           <div class="post-list" id="post-list"></div>
+          <div class="home-slot-editor hidden" id="home-slot-editor">
+            <h3 id="slot-editor-title">Edit home slot</h3>
+            <p class="slot-current" id="slot-editor-current"></p>
+            <div class="field">
+              <label for="slot-replace-select">Replace with</label>
+              <select id="slot-replace-select"></select>
+            </div>
+            <div class="slot-actions">
+              <button class="btn" type="button" id="slot-move-up">Move up</button>
+              <button class="btn" type="button" id="slot-move-down">Move down</button>
+              <button class="btn danger" type="button" id="slot-remove">Remove from home</button>
+              <button class="btn primary" type="button" id="slot-apply">Apply replacement</button>
+            </div>
+          </div>
         </section>
       </div>
     </div>
@@ -276,6 +296,51 @@
   let selectedWork = { items: [] };
   let editingId = null;
   let activePostTab = 'all';
+  let editingSlotIndex = null;
+  let projectPool = [];
+
+  const STATIC_PROJECT_POOL = [
+    {
+      blogId: null,
+      brand: 'Clive Christian',
+      title: 'Flagship Perfumery Boutique',
+      description: 'Full turnkey fit-out for the iconic British perfumery brand at Dubai Mall, featuring bespoke joinery and refined detailing.',
+      tag: 'Retail · Dubai Mall',
+      image: 'images/clivechristian.jpg',
+      imageWebp: 'images/clivev2.webp',
+      link: '',
+    },
+    {
+      blogId: null,
+      brand: 'Caron Paris',
+      title: 'Heritage Perfumery Boutique',
+      description: 'Elegant turnkey boutique for the historic French fragrance house, balancing classic craftsmanship with modern retail experience.',
+      tag: 'Retail · Dubai Mall',
+      image: 'images/caron.jpg',
+      imageWebp: 'images/caron.webp',
+      link: '',
+    },
+    {
+      blogId: null,
+      brand: "L'Odore",
+      title: 'Niche Perfumery Boutique',
+      description: "L'Odore is a luxury niche perfume boutique and fragrance brand known for curating artisanal, high-end scents tailored to refined Eastern and Middle Eastern tastes.",
+      tag: 'Retail · Riyadh',
+      image: 'images/lodore.jpg',
+      imageWebp: 'images/lodore.webp',
+      link: '',
+    },
+    {
+      blogId: null,
+      brand: 'ShrimpPot',
+      title: 'Multi-Location F&B Rollout',
+      description: 'Complete design and execution across multiple locations for this popular seafood concept, delivered on time and on brand.',
+      tag: 'F&B · Abu Dhabi',
+      image: 'images/shrimppot.jpg',
+      imageWebp: 'images/shrimppot.webp',
+      link: '',
+    },
+  ];
   let backendMode = 'offline'; // local | github | offline
   let pendingPreviewUrl = null;
 
@@ -568,6 +633,180 @@
     }
   }
 
+  function cloneItem(item) {
+    return JSON.parse(JSON.stringify(item));
+  }
+
+  function itemKey(item) {
+    if (!item) return '';
+    if (item.blogId != null) return `blog:${item.blogId}`;
+    return `static:${item.brand}:${item.title}`;
+  }
+
+  function projectToSelectedWorkItem(project) {
+    const image = project.image || '';
+    const tag = [project.tag, project.location].filter(Boolean).join(' · ') || 'Project';
+    return {
+      blogId: null,
+      brand: project.name,
+      title: project.name,
+      description: project.description || '',
+      tag,
+      image,
+      imageWebp: image.endsWith('.webp') ? image : '',
+      link: '',
+    };
+  }
+
+  function getReplaceCandidates() {
+    const candidates = [];
+    const seen = new Set();
+
+    posts.forEach(post => {
+      const key = `blog:${post.id}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      candidates.push({
+        key,
+        label: `${post.title} (blog)`,
+        item: postToSelectedWorkItem(post),
+        group: 'Blog posts',
+      });
+    });
+
+    [...STATIC_PROJECT_POOL, ...projectPool].forEach(item => {
+      const key = itemKey(item);
+      if (seen.has(key)) return;
+      seen.add(key);
+      candidates.push({
+        key,
+        label: `${item.brand || item.title} (project)`,
+        item: cloneItem(item),
+        group: 'Project cards',
+      });
+    });
+
+    return candidates;
+  }
+
+  function getSlotLabel(index) {
+    const item = selectedWork.items[index];
+    if (!item) return 'Empty slot';
+    if (item.blogId != null) {
+      const post = posts.find(p => p.id === item.blogId);
+      return post ? post.title : item.title;
+    }
+    return item.brand || item.title;
+  }
+
+  function hideSlotEditor() {
+    editingSlotIndex = null;
+    document.getElementById('home-slot-editor').classList.add('hidden');
+  }
+
+  function showSlotEditor(slotIndex) {
+    editingSlotIndex = slotIndex;
+    const editor = document.getElementById('home-slot-editor');
+    const item = selectedWork.items[slotIndex];
+    const slotNum = slotIndex + 1;
+
+    document.getElementById('slot-editor-title').textContent =
+      item ? `Edit home slot ${slotNum}` : `Assign home slot ${slotNum}`;
+
+    document.getElementById('slot-editor-current').textContent = item
+      ? `Currently: ${getSlotLabel(slotIndex)}`
+      : 'This slot is empty. Choose a post or project below.';
+
+    const select = document.getElementById('slot-replace-select');
+    const candidates = getReplaceCandidates();
+    const groups = [...new Set(candidates.map(c => c.group))];
+
+    select.innerHTML =
+      '<option value="">Select to replace…</option>' +
+      groups.map(group => {
+        const opts = candidates
+          .filter(c => c.group === group)
+          .map(c => `<option value="${c.key}">${c.label}</option>`)
+          .join('');
+        return `<optgroup label="${group}">${opts}</optgroup>`;
+      }).join('');
+
+    if (item) {
+      const currentKey = itemKey(item);
+      const match = candidates.find(c => c.key === currentKey);
+      if (match) select.value = currentKey;
+    }
+
+    document.getElementById('slot-move-up').disabled = slotIndex === 0 || !item;
+    document.getElementById('slot-move-down').disabled =
+      slotIndex >= 3 || !item || !selectedWork.items[slotIndex + 1];
+    document.getElementById('slot-remove').disabled = !item;
+
+    editor.classList.remove('hidden');
+    renderPostList();
+  }
+
+  function applySlotReplacement() {
+    if (editingSlotIndex == null) return;
+
+    const select = document.getElementById('slot-replace-select');
+    const chosenKey = select.value;
+    if (!chosenKey) {
+      showStatus('Choose a post or project to assign to this slot.', 'err');
+      return;
+    }
+
+    const candidate = getReplaceCandidates().find(c => c.key === chosenKey);
+    if (!candidate) return;
+
+    let slotIndex = editingSlotIndex;
+    const newItem = cloneItem(candidate.item);
+    const duplicateIndex = selectedWork.items.findIndex(
+      item => itemKey(item) === itemKey(newItem)
+    );
+
+    if (duplicateIndex !== -1) {
+      selectedWork.items.splice(duplicateIndex, 1);
+      if (duplicateIndex < slotIndex) slotIndex -= 1;
+    }
+
+    if (slotIndex < selectedWork.items.length) {
+      selectedWork.items[slotIndex] = newItem;
+    } else {
+      selectedWork.items.splice(slotIndex, 0, newItem);
+    }
+
+    selectedWork.items = selectedWork.items.slice(0, 4);
+    syncHomeSelectedFlags();
+    showSlotEditor(slotIndex);
+    showStatus('Home slot updated. Click "Save Changes" to persist.');
+  }
+
+  function moveHomeSlot(direction) {
+    if (editingSlotIndex == null) return;
+    const slotIndex = editingSlotIndex;
+    const targetIndex = slotIndex + direction;
+    if (targetIndex < 0 || targetIndex > 3) return;
+    if (!selectedWork.items[slotIndex] || !selectedWork.items[targetIndex]) return;
+
+    const items = selectedWork.items;
+    [items[slotIndex], items[targetIndex]] = [items[targetIndex], items[slotIndex]];
+    editingSlotIndex = targetIndex;
+    syncHomeSelectedFlags();
+    showSlotEditor(targetIndex);
+    showStatus('Home order updated. Click "Save Changes" to persist.');
+  }
+
+  function removeHomeSlot() {
+    if (editingSlotIndex == null) return;
+    if (!selectedWork.items[editingSlotIndex]) return;
+
+    selectedWork.items.splice(editingSlotIndex, 1);
+    syncHomeSelectedFlags();
+    showSlotEditor(Math.min(editingSlotIndex, 3));
+    showStatus('Removed from home page. Click "Save Changes" to persist.');
+  }
+
   function nextId() {
     return posts.length ? Math.max(...posts.map(p => p.id)) + 1 : 1;
   }
@@ -684,7 +923,7 @@
   const TAB_HINTS = {
     all: 'Every journal post — published and draft.',
     featured: 'The post shown large at the top of the blog page. Only one at a time.',
-    home: 'Cards on the home page Selected Work section (max 4, newest first). Blog posts and original project cards.',
+    home: 'Click a slot to replace it or change order. Slot 1 appears first on the home page (max 4).',
   };
 
   function updateTabCounts() {
@@ -696,6 +935,7 @@
 
   function setActivePostTab(tab) {
     activePostTab = tab;
+    if (tab !== 'home') hideSlotEditor();
     document.querySelectorAll('.post-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
@@ -718,10 +958,22 @@
   }
 
   function renderHomeQueueItem(entry) {
+    const selected = editingSlotIndex === entry.index ? ' selected-slot' : '';
+
+    if (entry.type === 'empty') {
+      return `
+        <div class="post-item slot-item empty${selected}" data-slot-index="${entry.index}">
+          <div class="pi-slot">Home slot ${entry.slot}</div>
+          <div class="pi-title" style="color:var(--mut)">Empty slot</div>
+          <div class="pi-meta">Click to assign a post or project</div>
+        </div>
+      `;
+    }
+
     if (entry.type === 'post') {
       const post = entry.post;
       return `
-        <div class="post-item${editingId === post.id ? ' active' : ''}" data-id="${post.id}">
+        <div class="post-item slot-item${selected}" data-slot-index="${entry.index}" data-id="${post.id}">
           <div class="pi-slot">Home slot ${entry.slot}</div>
           <div class="pi-title">${post.title}</div>
           <div class="pi-meta">${post.category} · ${formatDisplayDate(post.date)}</div>
@@ -735,7 +987,7 @@
 
     const item = entry.item;
     return `
-      <div class="post-item static">
+      <div class="post-item slot-item${selected}" data-slot-index="${entry.index}">
         <div class="pi-slot">Home slot ${entry.slot}</div>
         <div class="pi-title">${item.brand || item.title}</div>
         <div class="pi-meta">${item.tag || 'Project card'}</div>
@@ -744,6 +996,33 @@
         </div>
       </div>
     `;
+  }
+
+  function getHomeQueueEntries() {
+    const entries = [];
+
+    for (let index = 0; index < 4; index += 1) {
+      const item = selectedWork.items[index];
+      const slot = index + 1;
+
+      if (!item) {
+        entries.push({ type: 'empty', slot, index });
+        continue;
+      }
+
+      if (item.blogId != null) {
+        const post = posts.find(p => p.id === item.blogId);
+        entries.push(
+          post
+            ? { type: 'post', post, slot, index }
+            : { type: 'static', item, slot, index }
+        );
+      } else {
+        entries.push({ type: 'static', item, slot, index });
+      }
+    }
+
+    return entries;
   }
 
   function renderPostList() {
@@ -757,20 +1036,16 @@
       }
       postList.innerHTML = featuredPosts.map(renderPostItem).join('');
     } else if (activePostTab === 'home') {
-      const queue = selectedWork.items.slice(0, 4).map((item, index) => {
-        if (item.blogId != null) {
-          const post = posts.find(p => p.id === item.blogId);
-          return post ? { type: 'post', post, slot: index + 1 } : null;
-        }
-        return { type: 'static', item, slot: index + 1 };
-      }).filter(Boolean);
-
-      if (!queue.length) {
-        postList.innerHTML = '<div class="empty">No home page cards yet. Tick “Show on home page” on a blog post, or cards are seeded from selected-work.json.</div>';
-        return;
-      }
+      const queue = getHomeQueueEntries();
       postList.innerHTML = queue.map(renderHomeQueueItem).join('');
+
+      postList.querySelectorAll('.post-item.slot-item').forEach(el => {
+        el.addEventListener('click', () => {
+          showSlotEditor(Number(el.dataset.slotIndex));
+        });
+      });
     } else {
+      hideSlotEditor();
       const sorted = [...posts].sort((a, b) => b.id - a.id);
       if (!sorted.length) {
         postList.innerHTML = '<div class="empty">No posts yet. Create your first article.</div>';
@@ -803,6 +1078,16 @@
       selectedWork = { items: Array.isArray(data.items) ? data.items.slice(0, 4) : [] };
     } catch (_) {
       selectedWork = { items: [] };
+    }
+
+    try {
+      const res = await fetch('projects.json?' + Date.now());
+      const data = await res.json();
+      projectPool = Array.isArray(data)
+        ? data.map(projectToSelectedWorkItem)
+        : [];
+    } catch (_) {
+      projectPool = [];
     }
 
     syncHomeSelectedFlags();
@@ -970,6 +1255,11 @@
     if (!tab) return;
     setActivePostTab(tab.dataset.tab);
   });
+
+  document.getElementById('slot-apply').addEventListener('click', applySlotReplacement);
+  document.getElementById('slot-move-up').addEventListener('click', () => moveHomeSlot(-1));
+  document.getElementById('slot-move-down').addEventListener('click', () => moveHomeSlot(1));
+  document.getElementById('slot-remove').addEventListener('click', removeHomeSlot);
 
   document.getElementById('reset-btn').addEventListener('click', resetForm);
   document.getElementById('new-btn').addEventListener('click', resetForm);
