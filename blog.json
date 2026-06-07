@@ -1,0 +1,95 @@
+{
+  "posts": [
+    {
+      "id": 7,
+      "title": "Crafting Flagship Perfumery Experiences in the GCC",
+      "slug": "crafting-flagship-perfumery-experiences-in-the-gcc",
+      "category": "Retail",
+      "excerpt": "How bespoke joinery, lighting choreography, and material selection shape unforgettable luxury retail environments.",
+      "content": "",
+      "image": "images/clivechristian.jpg",
+      "date": "May 2026",
+      "readTime": "6 min read",
+      "featured": true,
+      "published": true
+    },
+    {
+      "id": 6,
+      "title": "Timeline Guardianship: Delivering Complex Fit-Outs On Schedule",
+      "slug": "timeline-guardianship-delivering-complex-fit-outs-on-schedule",
+      "category": "Project Management",
+      "excerpt": "The coordination principles that keep multi-trade luxury projects moving without compromising quality.",
+      "content": "",
+      "image": "images/caron.jpg",
+      "date": "April 2026",
+      "readTime": "5 min read",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": 5,
+      "title": "Scaling Restaurant Concepts Across Multiple Locations",
+      "slug": "scaling-restaurant-concepts-across-multiple-locations",
+      "category": "F&B",
+      "excerpt": "Maintaining brand integrity and operational efficiency when rolling out hospitality fit-outs region-wide.",
+      "content": "",
+      "image": "images/shrimppot.jpg",
+      "date": "March 2026",
+      "readTime": "4 min read",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": 4,
+      "title": "Bespoke Millwork: The Quiet Hero of Luxury Interiors",
+      "slug": "bespoke-millwork-the-quiet-hero-of-luxury-interiors",
+      "category": "Joinery",
+      "excerpt": "Why custom cabinetry and architectural joinery remain the defining detail in high-end boutique design.",
+      "content": "",
+      "image": "images/lodore.jpg",
+      "date": "February 2026",
+      "readTime": "7 min read",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": 3,
+      "title": "International Standards in Regional Hospitality Fit-Outs",
+      "slug": "international-standards-in-regional-hospitality-fit-outs",
+      "category": "Hospitality",
+      "excerpt": "Bridging global hospitality benchmarks with local craftsmanship across the Middle East.",
+      "content": "",
+      "image": "images/clivev2.webp",
+      "date": "January 2026",
+      "readTime": "5 min read",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": 2,
+      "title": "From Concept to Completion: The Turnkey Advantage",
+      "slug": "from-concept-to-completion-the-turnkey-advantage",
+      "category": "Turnkey",
+      "excerpt": "A single accountable partner from design through procurement, execution, and handover.",
+      "content": "",
+      "image": "images/caron.webp",
+      "date": "December 2025",
+      "readTime": "6 min read",
+      "featured": false,
+      "published": true
+    },
+    {
+      "id": 1,
+      "title": "Refined Detailing in Private Villa Fit-Outs",
+      "slug": "refined-detailing-in-private-villa-fit-outs",
+      "category": "Residential",
+      "excerpt": "Timeless materials and precision craftsmanship for bespoke residential projects across the region.",
+      "content": "",
+      "image": "images/lodore.webp",
+      "date": "November 2025",
+      "readTime": "5 min read",
+      "featured": false,
+      "published": true
+    }
+  ]
+}

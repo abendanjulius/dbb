@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog Admin • Creative DBB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#000000; --black2:#111111; --black3:#1a1816;
+    --gold:#e0a93c; --gold-l:#f0cd84;
+    --txt:#d8d2c4; --mut:#8d877a; --line:rgba(224,169,60,.22);
+    --ok:#6fbf8a; --err:#d86b6b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--black);color:var(--txt);font-family:'Outfit',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 40px}
+  @media(max-width:760px){.wrap{padding:0 20px}}
+
+  .top{position:sticky;top:0;z-index:50;background:rgba(17,17,17,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .top .wrap{display:flex;align-items:center;justify-content:space-between;min-height:72px;gap:20px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px}
+  .brand{font-family:'Cormorant Garamond',serif;font-size:22px;letter-spacing:.18em;color:var(--gold)}
+  .brand span{color:var(--mut);font-family:'Outfit',sans-serif;font-size:12px;letter-spacing:.2em;text-transform:uppercase;margin-left:14px}
+  .top-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+  .btn{border:1px solid var(--line);background:transparent;color:var(--txt);padding:10px 18px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:.3s;font-family:'Outfit',sans-serif}
+  .btn:hover{border-color:var(--gold);color:var(--gold)}
+  .btn.primary{border-color:var(--gold);color:var(--gold)}
+  .btn.primary:hover{background:var(--gold);color:var(--black)}
+  .btn.danger:hover{border-color:var(--err);color:var(--err)}
+
+  main{padding:40px 0 80px;position:relative;z-index:1}
+  .hero{margin-bottom:36px}
+  .hero .em{font-size:12px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold)}
+  .hero h1{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(2rem,5vw,3.4rem);margin-top:10px}
+  .hero p{color:var(--mut);margin-top:12px;font-weight:300;max-width:640px;line-height:1.6}
+
+  .status{margin:18px 0;padding:12px 16px;border:1px solid var(--line);font-size:14px;display:none}
+  .status.show{display:block}
+  .status.ok{border-color:rgba(111,191,138,.4);color:var(--ok)}
+  .status.err{border-color:rgba(216,107,107,.4);color:var(--err)}
+
+  .layout{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start}
+  @media(max-width:980px){.layout{grid-template-columns:1fr}}
+
+  .panel{border:1px solid var(--line);background:var(--black2);padding:28px}
+  .panel h2{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--gold);margin-bottom:22px;font-weight:400}
+
+  .field{margin-bottom:18px}
+  .field label{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+  .field input,.field textarea,.field select{
+    width:100%;background:var(--black3);border:1px solid var(--line);color:var(--txt);
+    padding:12px 14px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:300;outline:none;transition:border-color .3s
+  }
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--gold)}
+  .field textarea{min-height:110px;resize:vertical;line-height:1.6}
+  .field .hint{font-size:12px;color:var(--mut);margin-top:6px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:600px){.row2{grid-template-columns:1fr}}
+
+  .check{display:flex;align-items:center;gap:10px;margin-top:4px}
+  .check input{width:auto}
+  .check label{margin:0;text-transform:none;letter-spacing:0;font-size:14px;color:var(--txt)}
+
+  .form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .preview{border:1px solid var(--line);aspect-ratio:16/10;background:#111;overflow:hidden;margin-bottom:18px}
+  .preview img{width:100%;height:100%;object-fit:cover;display:block}
+  .image-upload{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .image-name{font-size:13px;color:var(--mut);font-weight:300}
+  .image-path{margin-top:10px}
+
+  .post-list{display:flex;flex-direction:column;gap:10px;max-height:72vh;overflow:auto}
+  .post-item{border:1px solid var(--line);padding:14px 16px;background:var(--black);cursor:pointer;transition:.3s}
+  .post-item:hover,.post-item.active{border-color:var(--gold);background:var(--black3)}
+  .post-item .pi-title{font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.2}
+  .post-item .pi-meta{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-top:6px}
+  .post-item .pi-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .badge{font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:4px 8px;border:1px solid var(--line);color:var(--mut)}
+  .badge.featured{border-color:var(--gold);color:var(--gold)}
+  .badge.draft{border-color:var(--err);color:var(--err)}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .empty{color:var(--mut);font-weight:300;padding:20px 0}
+
+  /* LOGIN */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px;position:relative;z-index:1}
+  .login{max-width:420px;width:100%;border:1px solid var(--line);background:var(--black2);padding:36px}
+  .login h1{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:2.4rem;margin-bottom:8px}
+  .login p{color:var(--mut);font-weight:300;margin-bottom:24px;font-size:15px}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login-wrap">
+  <div class="login">
+    <div class="em" style="font-size:12px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold)">Creative DBB</div>
+    <h1>Blog Admin</h1>
+    <p>Enter your admin password to manage journal posts.</p>
+    <div class="field">
+      <label for="login-pass">Password</label>
+      <input id="login-pass" type="password" placeholder="Admin password" autocomplete="current-password">
+    </div>
+    <div class="status err" id="login-error">Incorrect password.</div>
+    <div style="margin-top:18px">
+      <button class="btn primary" id="login-btn" type="button">Sign In</button>
+    </div>
+    <p class="hint" style="margin-top:18px;color:var(--mut);font-size:12px">Default password: <code style="color:var(--gold)">dbb2026</code> — change it in blog-admin.html.</p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="wrap">
+      <div class="brand">Creative DBB <span>Blog Admin</span></div>
+      <div class="top-actions">
+        <a href="blog.html" class="btn" target="_blank">View Blog</a>
+        <button class="btn" id="import-btn" type="button">Import JSON</button>
+        <button class="btn" id="download-btn" type="button">Download JSON</button>
+        <button class="btn primary" id="save-btn" type="button">Save Changes</button>
+        <button class="btn" id="logout-btn" type="button">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div class="hero">
+        <div class="em">Content Management</div>
+        <h1>Manage journal posts</h1>
+        <p>Add, edit, and publish articles. When running locally with <code>python3 blog-server.py</code>, Save writes directly to blog.json. Otherwise, download the JSON and replace the file on your server.</p>
+      </div>
+
+      <div class="status" id="status"></div>
+
+      <div class="layout">
+        <section class="panel">
+          <h2 id="form-title">New Post</h2>
+          <div class="preview" id="image-preview"><img src="" alt="" id="preview-img" style="display:none"></div>
+
+          <form id="post-form">
+            <input type="hidden" id="post-id">
+
+            <div class="field">
+              <label for="title">Title</label>
+              <input id="title" required placeholder="Article title">
+            </div>
+
+            <div class="row2">
+              <div class="field">
+                <label for="category">Category</label>
+                <input id="category" list="category-list" placeholder="e.g. Retail" required>
+                <datalist id="category-list"></datalist>
+              </div>
+              <div class="field">
+                <label for="date">Date</label>
+                <input id="date" placeholder="e.g. June 2026" required>
+              </div>
+            </div>
+
+            <div class="row2">
+              <div class="field">
+                <label for="readTime">Read time</label>
+                <input id="readTime" placeholder="e.g. 5 min read" required>
+              </div>
+              <div class="field">
+                <label>Cover image</label>
+                <div class="image-upload">
+                  <button class="btn primary" type="button" id="choose-image-btn">Choose Image</button>
+                </div>
+                <span class="image-name" id="image-filename">No image selected</span>
+                <input type="file" id="image-file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+                <input id="image" placeholder="images/your-image.jpg" readonly style="margin-top:10px">
+                <div class="hint">JPG, PNG, WebP, or GIF. Requires <code>python3 blog-server.py</code> to upload.</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="excerpt">Excerpt</label>
+              <textarea id="excerpt" placeholder="Short summary shown on the blog listing" required></textarea>
+            </div>
+
+            <div class="field">
+              <label for="content">Full article (optional)</label>
+              <textarea id="content" placeholder="Full article body — for future article pages" style="min-height:160px"></textarea>
+            </div>
+
+            <div class="row2">
+              <div class="check">
+                <input type="checkbox" id="featured">
+                <label for="featured">Featured post (shown large at top)</label>
+              </div>
+              <div class="check">
+                <input type="checkbox" id="published" checked>
+                <label for="published">Published (visible on blog)</label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn primary" type="submit">Save Post</button>
+              <button class="btn" type="button" id="reset-btn">Clear Form</button>
+              <button class="btn danger" type="button" id="delete-btn" style="display:none">Delete Post</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>All Posts <span id="post-count" style="font-size:16px;color:var(--mut)"></span></h2>
+          <div class="toolbar">
+            <button class="btn" id="new-btn" type="button">+ New Post</button>
+          </div>
+          <div class="post-list" id="post-list"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<input type="file" id="import-file" accept="application/json,.json" hidden>
+
+<script>
+  const ADMIN_PASSWORD = 'dbb2026';
+  const AUTH_KEY = 'dbb_blog_admin_auth';
+
+  let posts = [];
+  let editingId = null;
+
+  const loginScreen = document.getElementById('login-screen');
+  const app = document.getElementById('app');
+  const statusEl = document.getElementById('status');
+  const postList = document.getElementById('post-list');
+  const categoryList = document.getElementById('category-list');
+  const form = document.getElementById('post-form');
+  const formTitle = document.getElementById('form-title');
+  const deleteBtn = document.getElementById('delete-btn');
+  const previewImg = document.getElementById('preview-img');
+
+  function slugify(text) {
+    return text.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+
+  function showStatus(message, type = 'ok') {
+    statusEl.textContent = message;
+    statusEl.className = 'status show ' + type;
+    setTimeout(() => statusEl.classList.remove('show'), 4000);
+  }
+
+  function nextId() {
+    return posts.length ? Math.max(...posts.map(p => p.id)) + 1 : 1;
+  }
+
+  function updateCategories() {
+    const cats = [...new Set(posts.map(p => p.category).filter(Boolean))].sort();
+    categoryList.innerHTML = cats.map(c => `<option value="${c}">`).join('');
+  }
+
+  function setImageFilename(path = '') {
+    const label = document.getElementById('image-filename');
+    if (!path) {
+      label.textContent = 'No image selected';
+      return;
+    }
+    label.textContent = path.split('/').pop();
+  }
+
+  function updatePreview(localUrl = null) {
+    const src = localUrl || document.getElementById('image').value.trim();
+    if (src) {
+      previewImg.src = src;
+      previewImg.style.display = 'block';
+      previewImg.onerror = () => { previewImg.style.display = 'none'; };
+    } else {
+      previewImg.style.display = 'none';
+      previewImg.removeAttribute('src');
+    }
+  }
+
+  function resetForm() {
+    editingId = null;
+    form.reset();
+    document.getElementById('post-id').value = '';
+    document.getElementById('published').checked = true;
+    document.getElementById('image').value = '';
+    document.getElementById('image-file').value = '';
+    setImageFilename();
+    formTitle.textContent = 'New Post';
+    deleteBtn.style.display = 'none';
+    updatePreview();
+    document.querySelectorAll('.post-item').forEach(el => el.classList.remove('active'));
+  }
+
+  function fillForm(post) {
+    editingId = post.id;
+    document.getElementById('post-id').value = post.id;
+    document.getElementById('title').value = post.title;
+    document.getElementById('category').value = post.category;
+    document.getElementById('date').value = post.date;
+    document.getElementById('readTime').value = post.readTime;
+    document.getElementById('image').value = post.image || '';
+    document.getElementById('image-file').value = '';
+    setImageFilename(post.image || '');
+    document.getElementById('excerpt').value = post.excerpt;
+    document.getElementById('content').value = post.content || '';
+    document.getElementById('featured').checked = !!post.featured;
+    document.getElementById('published').checked = !!post.published;
+    formTitle.textContent = 'Edit Post';
+    deleteBtn.style.display = 'inline-block';
+    updatePreview();
+    document.querySelectorAll('.post-item').forEach(el => {
+      el.classList.toggle('active', Number(el.dataset.id) === post.id);
+    });
+  }
+
+  function renderPostList() {
+    const sorted = [...posts].sort((a, b) => b.id - a.id);
+    document.getElementById('post-count').textContent = `(${sorted.length})`;
+
+    if (!sorted.length) {
+      postList.innerHTML = '<div class="empty">No posts yet. Create your first article.</div>';
+      return;
+    }
+
+    postList.innerHTML = sorted.map(post => `
+      <div class="post-item${editingId === post.id ? ' active' : ''}" data-id="${post.id}">
+        <div class="pi-title">${post.title}</div>
+        <div class="pi-meta">${post.category} · ${post.date}</div>
+        <div class="pi-badges">
+          ${post.featured ? '<span class="badge featured">Featured</span>' : ''}
+          ${post.published ? '<span class="badge">Published</span>' : '<span class="badge draft">Draft</span>'}
+        </div>
+      </div>
+    `).join('');
+
+    postList.querySelectorAll('.post-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const post = posts.find(p => p.id === Number(el.dataset.id));
+        if (post) fillForm(post);
+      });
+    });
+  }
+
+  async function loadPosts() {
+    try {
+      const res = await fetch('blog.json?' + Date.now());
+      const data = await res.json();
+      posts = Array.isArray(data.posts) ? data.posts : [];
+      updateCategories();
+      renderPostList();
+    } catch (err) {
+      posts = [];
+      showStatus('Could not load blog.json. You can still create posts and download the file.', 'err');
+      renderPostList();
+    }
+  }
+
+  function getPayload() {
+    return { posts };
+  }
+
+  async function savePosts() {
+    const payload = getPayload();
+
+    try {
+      const res = await fetch('/api/blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        showStatus('Saved to blog.json successfully.');
+        return true;
+      }
+    } catch (_) {}
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'blog.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showStatus('Server not detected — blog.json downloaded. Replace the file in your DBB folder.', 'err');
+    return false;
+  }
+
+  function ensureSingleFeatured(featuredId) {
+    if (!featuredId) return;
+    posts.forEach(p => {
+      if (p.id !== featuredId) p.featured = false;
+    });
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const title = document.getElementById('title').value.trim();
+    const category = document.getElementById('category').value.trim();
+    const date = document.getElementById('date').value.trim();
+    const readTime = document.getElementById('readTime').value.trim();
+    const image = document.getElementById('image').value.trim();
+    const excerpt = document.getElementById('excerpt').value.trim();
+    const content = document.getElementById('content').value.trim();
+    const featured = document.getElementById('featured').checked;
+    const published = document.getElementById('published').checked;
+
+    const postData = {
+      title,
+      slug: slugify(title),
+      category,
+      date,
+      readTime,
+      image,
+      excerpt,
+      content,
+      featured,
+      published,
+    };
+
+    if (editingId) {
+      const idx = posts.findIndex(p => p.id === editingId);
+      if (idx !== -1) posts[idx] = { ...posts[idx], ...postData };
+      if (featured) ensureSingleFeatured(editingId);
+      showStatus('Post updated. Click "Save Changes" to persist.');
+    } else {
+      const id = nextId();
+      const newPost = { id, ...postData };
+      posts.push(newPost);
+      if (featured) ensureSingleFeatured(id);
+      editingId = id;
+      document.getElementById('post-id').value = id;
+      formTitle.textContent = 'Edit Post';
+      deleteBtn.style.display = 'inline-block';
+      showStatus('Post created. Click "Save Changes" to persist.');
+    }
+
+    updateCategories();
+    renderPostList();
+  });
+
+  document.getElementById('choose-image-btn').addEventListener('click', () => {
+    document.getElementById('image-file').click();
+  });
+
+  document.getElementById('image-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const chooseBtn = document.getElementById('choose-image-btn');
+    const localUrl = URL.createObjectURL(file);
+    setImageFilename(file.name);
+    updatePreview(localUrl);
+
+    chooseBtn.disabled = true;
+    chooseBtn.textContent = 'Uploading...';
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Upload failed');
+      }
+      document.getElementById('image').value = data.path;
+      setImageFilename(data.path);
+      updatePreview();
+      showStatus('Image uploaded: ' + data.path);
+    } catch (err) {
+      document.getElementById('image').value = '';
+      setImageFilename();
+      updatePreview();
+      showStatus(err.message || 'Upload failed. Start the server with python3 blog-server.py', 'err');
+    } finally {
+      URL.revokeObjectURL(localUrl);
+      chooseBtn.disabled = false;
+      chooseBtn.textContent = 'Choose Image';
+    }
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', resetForm);
+  document.getElementById('new-btn').addEventListener('click', resetForm);
+
+  deleteBtn.addEventListener('click', () => {
+    if (!editingId) return;
+    if (!confirm('Delete this post?')) return;
+    posts = posts.filter(p => p.id !== editingId);
+    resetForm();
+    updateCategories();
+    renderPostList();
+    showStatus('Post deleted. Click "Save Changes" to persist.');
+  });
+
+  document.getElementById('save-btn').addEventListener('click', savePosts);
+
+  document.getElementById('download-btn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(getPayload(), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'blog.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showStatus('blog.json downloaded.');
+  });
+
+  document.getElementById('import-btn').addEventListener('click', () => {
+    document.getElementById('import-file').click();
+  });
+
+  document.getElementById('import-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data.posts)) throw new Error('Invalid format');
+      posts = data.posts;
+      resetForm();
+      updateCategories();
+      renderPostList();
+      showStatus('Imported ' + posts.length + ' posts. Click "Save Changes" to persist.');
+    } catch (err) {
+      showStatus('Import failed: invalid JSON file.', 'err');
+    }
+    e.target.value = '';
+  });
+
+  function signIn() {
+    const pass = document.getElementById('login-pass').value;
+    if (pass === ADMIN_PASSWORD) {
+      sessionStorage.setItem(AUTH_KEY, '1');
+      loginScreen.classList.add('hidden');
+      app.classList.remove('hidden');
+      document.getElementById('login-error').classList.remove('show');
+      loadPosts();
+    } else {
+      document.getElementById('login-error').classList.add('show');
+    }
+  }
+
+  document.getElementById('login-btn').addEventListener('click', signIn);
+  document.getElementById('login-pass').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') signIn();
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    sessionStorage.removeItem(AUTH_KEY);
+    app.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    document.getElementById('login-pass').value = '';
+  });
+
+  if (sessionStorage.getItem(AUTH_KEY) === '1') {
+    loginScreen.classList.add('hidden');
+    app.classList.remove('hidden');
+    loadPosts();
+  }
+</script>
+</body>
+</html>
