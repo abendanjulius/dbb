@@ -23,7 +23,7 @@
       "image": "images/caron.jpg",
       "date": "April 2026",
       "readTime": "5 min read",
-      "featured": true,
+      "featured": false,
       "published": true
     },
     {
@@ -96,12 +96,12 @@
       "title": "Test Article",
       "slug": "test-article",
       "category": "F&B",
-      "date": "May 8, 2025 3:19 PM",
+      "date": "june  8, 2026 3:19 PM",
       "readTime": "5",
       "image": "images/1780821887754-0740.jpg",
       "excerpt": "sadsadasdsadasdasd",
       "content": "asdsadasdsadsad",
-      "featured": false,
+      "featured": true,
       "published": true
     }
   ]
