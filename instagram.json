@@ -1,0 +1,17 @@
+{
+  "handle": "creativedbb",
+  "profileUrl": "https://www.instagram.com/creativedbb/",
+  "maxPosts": 12,
+  "mode": "oembed",
+  "posts": [
+    {
+      "url": "https://www.instagram.com/reel/DY6IsrEj-z6/",
+      "id": "DY6IsrEj-z6",
+      "shortcode": "DY6IsrEj-z6",
+      "image": "images/ig-DY6IsrEj-z6.jpg",
+      "caption": "The Specs for the Space The sourcing brief for a luxury fragrance boutique is never simply a materials list. It is a sensory translation. Creative DBB selected each element with...",
+      "syncedAt": "2026-06-07T12:20:06Z"
+    }
+  ],
+  "lastSyncedAt": "2026-06-07T12:20:06Z"
+}

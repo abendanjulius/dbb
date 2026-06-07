@@ -233,6 +233,39 @@
     letter-spacing: 0.5px;
   }
 
+  /* INSTAGRAM */
+  .ig-section{background:var(--black2)}
+  .ig-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:36px}
+  .ig-head .follow{
+    color:var(--gold);text-decoration:none;font-size:12px;letter-spacing:.18em;
+    text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:5px;transition:border-color .3s
+  }
+  .ig-head .follow:hover{border-color:var(--gold)}
+  .ig-scroll{
+    display:flex;gap:16px;overflow-x:auto;padding-bottom:10px;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin;
+    scrollbar-color:var(--gold) transparent
+  }
+  .ig-scroll::-webkit-scrollbar{height:6px}
+  .ig-scroll::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
+  .ig-card{
+    flex:0 0 clamp(180px, 28vw, 260px);aspect-ratio:1;border:1px solid var(--line);
+    overflow:hidden;scroll-snap-align:start;position:relative;background:#111;transition:border-color .3s
+  }
+  .ig-card:hover{border-color:var(--gold)}
+  .ig-card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
+  .ig-card:hover img{transform:scale(1.04)}
+  .ig-card .ig-cap{
+    position:absolute;inset:auto 0 0 0;padding:14px 12px 12px;
+    background:linear-gradient(transparent,rgba(0,0,0,.82));
+    font-size:11px;letter-spacing:.08em;color:var(--txt);line-height:1.4;opacity:0;transition:opacity .3s
+  }
+  .ig-card:hover .ig-cap{opacity:1}
+  .ig-card .ig-ico{
+    position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;
+    background:rgba(0,0,0,.65);border:1px solid var(--line);display:flex;align-items:center;justify-content:center
+  }
+  .ig-card .ig-ico svg{width:14px;height:14px;fill:var(--gold-l)}
   /* CTA */
   .cta-s{text-align:center;position:relative}
   .cta-s::before{content:"";position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(224,169,60,.13),transparent 65%);left:50%;top:50%;transform:translate(-50%,-50%)}
@@ -339,6 +372,20 @@
     <div class="nm-c"><div class="big">20+</div><div class="lab">Years Experience</div></div>
     <div class="nm-c"><div class="big">GCC</div><div class="lab">Regional Reach</div></div>
     <div class="nm-c"><div class="big">Turnkey</div><div class="lab">Full Accountability</div></div>
+  </div>
+</div></section>
+
+<section id="instagram" class="ig-section"><div class="wrap">
+  <div class="ig-head rv">
+    <div class="sh" style="margin-bottom:0;text-align:left">
+      <div class="em">Instagram</div>
+      <h2>From the <em>studio</em></h2>
+      <div class="divider" style="margin-left:0"></div>
+    </div>
+    <a class="follow" id="ig-follow-link" href="https://www.instagram.com/creativedbb/" target="_blank" rel="noopener">Follow @creativedbb</a>
+  </div>
+  <div class="ig-scroll rv" id="ig-feed">
+    <!-- Loaded from instagram.json -->
   </div>
 </div></section>
 
@@ -496,8 +543,60 @@
     }
   }
 
+  function renderCuratedInstagram(container, posts, profileUrl) {
+    container.classList.remove('ig-embed-mode');
+
+    if (!posts.length) {
+      container.innerHTML = '<p style="color:var(--mut);font-weight:300">Instagram posts coming soon.</p>';
+      return;
+    }
+
+    const igIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.054 1.97.24 2.43.403.59.217 1.01.477 1.45.917.44.44.7.86.917 1.45.163.46.349 1.26.403 2.43.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.054 1.17-.24 1.97-.403 2.43-.217.59-.477 1.01-.917 1.45-.44-.44-.86.7-1.45.917-.46.163-1.26.349-2.43.403-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.17-.054-1.97-.24-2.43-.403-.59-.217-1.01-.477-1.45-.917-.44-.44-.7-.86-.917-1.45-.163-.46-.349-1.26-.403-2.43-.057-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.054-1.17.24-1.97.403-2.43.217-.59.477-1.01.917-1.45.44-.44.86-.7 1.45-.917.46-.163 1.26-.349 2.43-.403 1.266-.057 1.646-.07 4.85-.07zM12 0C8.741 0 8.333.014 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.497 2.913.558 1.28.058 1.689.072 4.948.072s3.667-.014 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.497-1.636.558-2.913.058-1.28.072-1.689.072-4.947s-.014-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.498-2.913-.558C15.667.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>`;
+
+    container.innerHTML = posts.map(post => {
+      const image = escapeHtml(post.image || '');
+      const url = escapeHtml(post.url || profileUrl);
+      const caption = escapeHtml(post.caption || '');
+      const alt = caption || 'Instagram post';
+      return `
+        <a class="ig-card" href="${url}" target="_blank" rel="noopener" aria-label="${alt}">
+          <img src="${image}" alt="${alt}" loading="lazy" width="520" height="520">
+          <span class="ig-ico">${igIcon}</span>
+          ${caption ? `<span class="ig-cap">${caption}</span>` : ''}
+        </a>
+      `;
+    }).join('');
+
+    observeRevealElements(container);
+  }
+
+  async function loadInstagramFeed() {
+    const container = document.getElementById('ig-feed');
+    const followLink = document.getElementById('ig-follow-link');
+    if (!container) return;
+
+    try {
+      const res = await fetch('instagram.json?v=' + Date.now(), { cache: 'no-store' });
+      const data = await res.json();
+      const posts = Array.isArray(data.posts) ? data.posts : [];
+      const handle = data.handle || 'creativedbb';
+      const profileUrl = data.profileUrl || `https://www.instagram.com/${handle}/`;
+      if (followLink) {
+        followLink.href = profileUrl;
+        followLink.textContent = `Follow @${handle}`;
+      }
+
+      const readyPosts = posts.filter(post => post.image && post.url);
+      renderCuratedInstagram(container, readyPosts, profileUrl);
+    } catch (err) {
+      console.error('Failed to load Instagram feed:', err);
+      container.innerHTML = '<p style="color:var(--mut);font-weight:300">Unable to load Instagram posts.</p>';
+    }
+  }
+
   loadFeaturedProjects();
   loadSelectedWork();
+  loadInstagramFeed();
 </script>
 </body>
 </html>
