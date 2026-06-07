@@ -268,13 +268,21 @@
           <p class="hint" id="tab-hint" style="margin-bottom:14px"></p>
           <div class="slot-editor-panel hidden" id="instagram-editor">
             <h3>From the studio</h3>
-            <p class="slot-current">Curate the home page Instagram feed for <strong>@creativedbb</strong>. Paste a post or reel URL — it publishes automatically. No need to click <strong>Save Changes</strong>.</p>
+            <p class="slot-current">Curate the home page Instagram feed for <strong>@creativedbb</strong>. Add one URL or paste many at once — they publish automatically. No need to click <strong>Save Changes</strong>.</p>
             <div class="field">
-              <label for="ig-url-input">Instagram post URL</label>
+              <label for="ig-url-input">Single post URL</label>
               <input id="ig-url-input" type="url" placeholder="https://www.instagram.com/reel/..." autocomplete="off">
             </div>
-            <div class="slot-actions">
+            <div class="slot-actions" style="margin-bottom:18px">
               <button class="btn primary" type="button" id="ig-add-btn">Add Post</button>
+            </div>
+            <div class="field">
+              <label for="ig-bulk-input">Bulk add URLs</label>
+              <textarea id="ig-bulk-input" placeholder="Paste one Instagram URL per line&#10;https://www.instagram.com/creativedbb/reel/ABC123/&#10;https://www.instagram.com/creativedbb/p/DEF456/" style="min-height:140px"></textarea>
+              <div class="hint">One URL per line (or comma-separated). Duplicates and invalid lines are skipped. Max 12 posts kept, newest first after sync.</div>
+            </div>
+            <div class="slot-actions">
+              <button class="btn primary" type="button" id="ig-bulk-add-btn">Add All</button>
             </div>
           </div>
           <div class="post-list" id="post-list"></div>
@@ -715,7 +723,64 @@
     }
   }
 
-  async function syncInstagramFeed(shortcode) {
+  function extractInstagramUrlsFromText(text) {
+    const valid = [];
+    const invalid = [];
+    const seen = new Set();
+
+    String(text || '').split(/[\n,]+/).forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+      const url = normalizeInstagramUrl(trimmed);
+      if (!url) {
+        invalid.push(trimmed);
+        return;
+      }
+      const shortcode = extractInstagramShortcode(url);
+      if (seen.has(shortcode)) return;
+      seen.add(shortcode);
+      valid.push(url);
+    });
+
+    return { valid, invalid };
+  }
+
+  function mergeInstagramUrls(urls) {
+    const existingShortcodes = new Set(
+      (instagramData.posts || []).map(post =>
+        extractInstagramShortcode(normalizeInstagramUrl(post.url || ''))
+      )
+    );
+    const addedShortcodes = [];
+
+    urls.forEach(url => {
+      const shortcode = extractInstagramShortcode(url);
+      if (existingShortcodes.has(shortcode)) return;
+      existingShortcodes.add(shortcode);
+      instagramData.posts.push({ url });
+      addedShortcodes.push(shortcode);
+    });
+
+    const maxPosts = Number(instagramData.maxPosts) || 12;
+    instagramData.posts = sortInstagramPosts(instagramData.posts).slice(0, maxPosts);
+    return addedShortcodes;
+  }
+
+  function setInstagramBusy(busy, singleLabel = 'Add Post', bulkLabel = 'Add All') {
+    const addBtn = document.getElementById('ig-add-btn');
+    const bulkBtn = document.getElementById('ig-bulk-add-btn');
+    addBtn.disabled = busy;
+    bulkBtn.disabled = busy;
+    addBtn.textContent = busy ? 'Syncing…' : singleLabel;
+    bulkBtn.textContent = busy ? 'Syncing…' : bulkLabel;
+  }
+
+  async function syncInstagramFeedBulk(shortcodes) {
+    const uniqueShortcodes = [...new Set(shortcodes.filter(Boolean))];
+    if (!uniqueShortcodes.length) {
+      throw new Error('No new Instagram URLs to add.');
+    }
+
     await ensureInstagramBackend();
 
     if (backendMode === 'local') {
@@ -729,30 +794,43 @@
         throw new Error(data.error || 'Instagram sync failed');
       }
       applyInstagramPayload(data.data);
-      showStatus('Instagram post synced — already live on the homepage.');
+      const count = uniqueShortcodes.length;
+      showStatus(count === 1
+        ? 'Instagram post synced — already live on the homepage.'
+        : `${count} Instagram posts synced — live on the homepage.`);
       return true;
     }
 
-    await persistInstagram('Add Instagram post');
-    return waitForInstagramSync(shortcode);
+    const count = uniqueShortcodes.length;
+    await persistInstagram(count === 1 ? 'Add Instagram post' : `Add ${count} Instagram posts`);
+    return waitForBulkInstagramSync(uniqueShortcodes);
   }
 
-  async function waitForInstagramSync(shortcode) {
-    const deadline = Date.now() + 180000;
-    showStatus('Syncing thumbnail — homepage will update shortly…');
-    await new Promise(resolve => setTimeout(resolve, 8000));
+  async function waitForBulkInstagramSync(shortcodes) {
+    const pending = new Set(shortcodes);
+    const total = shortcodes.length;
+    const deadline = Date.now() + (total > 1 ? 300000 : 180000);
+    let latestData = null;
 
-    while (Date.now() < deadline) {
+    showStatus(total === 1
+      ? 'Syncing thumbnail — homepage will update shortly…'
+      : `Syncing ${total} thumbnails — homepage will update shortly…`);
+    await new Promise(resolve => setTimeout(resolve, total > 1 ? 10000 : 8000));
+
+    while (Date.now() < deadline && pending.size > 0) {
       try {
         const res = await fetch('instagram.json?' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
-          const data = await res.json();
-          const post = (data.posts || []).find(entry =>
-            (entry.shortcode || extractInstagramShortcode(entry.url || '')) === shortcode
-          );
-          if (post?.image) {
-            applyInstagramPayload(data);
-            showStatus('Instagram post is live on the homepage.');
+          latestData = await res.json();
+          (latestData.posts || []).forEach(post => {
+            const shortcode = post.shortcode || extractInstagramShortcode(post.url || '');
+            if (post.image && pending.has(shortcode)) pending.delete(shortcode);
+          });
+          if (pending.size === 0) {
+            applyInstagramPayload(latestData);
+            showStatus(total === 1
+              ? 'Instagram post is live on the homepage.'
+              : `${total} Instagram posts are live on the homepage.`);
             return true;
           }
         }
@@ -760,8 +838,51 @@
       await new Promise(resolve => setTimeout(resolve, 5000));
     }
 
-    showStatus('URL saved. Thumbnail is still syncing — refresh the homepage in a minute or two.', 'err');
-    return false;
+    if (latestData) applyInstagramPayload(latestData);
+
+    const syncedCount = total - pending.size;
+    if (syncedCount === 0) {
+      showStatus('URLs saved. Thumbnails are still syncing — refresh the homepage in a minute or two.', 'err');
+      return false;
+    }
+
+    showStatus(`${syncedCount} of ${total} posts synced so far. The rest should appear after you refresh the homepage.`, 'err');
+    return pending.size === 0;
+  }
+
+  async function publishInstagramUrls(urls, options = {}) {
+    const { invalid = [], clearSingle = false, clearBulk = false } = options;
+    const shortcodes = mergeInstagramUrls(urls);
+
+    if (!shortcodes.length) {
+      const message = urls.length
+        ? 'All URLs are already in your feed.'
+        : 'Paste at least one Instagram URL.';
+      showStatus(message, 'err');
+      return false;
+    }
+
+    if (clearSingle) document.getElementById('ig-url-input').value = '';
+    if (clearBulk) document.getElementById('ig-bulk-input').value = '';
+    renderPostList();
+    setInstagramBusy(true);
+
+    const invalidNote = invalid.length
+      ? ` Skipped ${invalid.length} invalid line${invalid.length === 1 ? '' : 's'}.`
+      : '';
+
+    try {
+      await syncInstagramFeedBulk(shortcodes);
+      if (invalid.length) {
+        showStatus(`Added ${shortcodes.length} post${shortcodes.length === 1 ? '' : 's'}.${invalidNote}`);
+      }
+      return true;
+    } catch (err) {
+      showStatus(formatFetchError(err) + invalidNote, 'err');
+      return false;
+    } finally {
+      setInstagramBusy(false);
+    }
   }
 
   async function addInstagramUrl(rawUrl) {
@@ -771,32 +892,22 @@
       return false;
     }
 
-    const shortcode = extractInstagramShortcode(url);
-    instagramData.posts = (instagramData.posts || []).filter(post => {
-      const existing = normalizeInstagramUrl(post.url || '');
-      return extractInstagramShortcode(existing) !== shortcode;
-    });
-    instagramData.posts.push({ url });
-    const maxPosts = Number(instagramData.maxPosts) || 12;
-    instagramData.posts = sortInstagramPosts(instagramData.posts).slice(0, maxPosts);
+    return publishInstagramUrls([url], { clearSingle: true });
+  }
 
-    document.getElementById('ig-url-input').value = '';
-    renderPostList();
-
-    const addBtn = document.getElementById('ig-add-btn');
-    addBtn.disabled = true;
-    addBtn.textContent = 'Syncing…';
-
-    try {
-      await syncInstagramFeed(shortcode);
-      return true;
-    } catch (err) {
-      showStatus(formatFetchError(err), 'err');
+  async function addInstagramUrlsBulk(rawText) {
+    const { valid, invalid } = extractInstagramUrlsFromText(rawText);
+    if (!valid.length) {
+      showStatus(
+        invalid.length
+          ? 'No valid Instagram URLs found in that list.'
+          : 'Paste at least one Instagram URL.',
+        'err'
+      );
       return false;
-    } finally {
-      addBtn.disabled = false;
-      addBtn.textContent = 'Add Post';
     }
+
+    return publishInstagramUrls(valid, { invalid, clearBulk: true });
   }
 
   async function removeInstagramPost(index) {
@@ -1148,7 +1259,7 @@
     all: 'Every journal post — published and draft.',
     featured: 'Click the featured slot to replace it. One post is shown large at the top of the blog.',
     home: 'Click a slot to replace it or change order. Slot 1 appears first on the home page (max 4).',
-    instagram: 'Posts are sorted by publish date (newest first, max 12). Add a URL and it publishes — no Save Changes needed.',
+    instagram: 'Add one URL or paste many at once. Sorted by publish date (newest first, max 12). No Save Changes needed.',
   };
 
   function getFeaturedPost() {
@@ -1657,6 +1768,10 @@
 
   document.getElementById('ig-add-btn').addEventListener('click', async () => {
     await addInstagramUrl(document.getElementById('ig-url-input').value);
+  });
+
+  document.getElementById('ig-bulk-add-btn').addEventListener('click', async () => {
+    await addInstagramUrlsBulk(document.getElementById('ig-bulk-input').value);
   });
 
   document.getElementById('ig-url-input').addEventListener('keydown', async (e) => {
