@@ -1,6 +1,16 @@
 {
   "items": [
     {
+      "blogId": 8,
+      "brand": "F&B",
+      "title": "Test Article",
+      "description": "sadsadasdsadasdasd",
+      "tag": "F&B · Journal",
+      "image": "images/1780821887754-0740.jpg",
+      "imageWebp": "",
+      "link": "blog.html"
+    },
+    {
       "blogId": null,
       "brand": "Clive Christian",
       "title": "Flagship Perfumery Boutique",
@@ -28,16 +38,6 @@
       "tag": "Retail · Riyadh",
       "image": "images/lodore.jpg",
       "imageWebp": "images/lodore.webp",
-      "link": ""
-    },
-    {
-      "blogId": null,
-      "brand": "ShrimpPot",
-      "title": "Multi-Location F&B Rollout",
-      "description": "Complete design and execution across multiple locations for this popular seafood concept, delivered on time and on brand.",
-      "tag": "F&B · Abu Dhabi",
-      "image": "images/shrimppot.jpg",
-      "imageWebp": "images/shrimppot.webp",
       "link": ""
     }
   ]
