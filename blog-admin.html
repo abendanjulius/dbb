@@ -68,6 +68,9 @@
     width:100%;background:var(--black3);border:1px solid var(--line);color:var(--txt);
     padding:12px 14px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:300;outline:none;transition:border-color .3s
   }
+  .field input[type="date"]{color-scheme:dark}
+  .field select{cursor:pointer}
+  .field select option{background:var(--black3);color:var(--txt)}
   .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--gold)}
   .field textarea{min-height:110px;resize:vertical;line-height:1.6}
   .field .hint{font-size:12px;color:var(--mut);margin-top:6px}
@@ -176,40 +179,30 @@
             <div class="row2">
               <div class="field">
                 <label for="category">Category</label>
-                <input id="category" list="category-list" placeholder="e.g. Retail" required>
-                <datalist id="category-list"></datalist>
+                <select id="category" required>
+                  <option value="">Select category</option>
+                </select>
               </div>
               <div class="field">
                 <label for="date">Date</label>
-                <input id="date" placeholder="e.g. June 2026" required>
-              </div>
-            </div>
-
-            <div class="row2">
-              <div class="field">
-                <label for="readTime">Read time</label>
-                <input id="readTime" placeholder="e.g. 5 min read" required>
-              </div>
-              <div class="field">
-                <label>Cover image</label>
-                <div class="image-upload">
-                  <button class="btn primary" type="button" id="choose-image-btn">Choose Image</button>
-                </div>
-                <span class="image-name" id="image-filename">No image selected</span>
-                <input type="file" id="image-file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
-                <input id="image" placeholder="images/your-image.jpg" readonly style="margin-top:10px">
-                <div class="hint">JPG, PNG, WebP, or GIF. Connect GitHub token to upload from anywhere.</div>
+                <input id="date" type="date" required>
               </div>
             </div>
 
             <div class="field">
-              <label for="excerpt">Excerpt</label>
+              <label>Cover image</label>
+              <div class="image-upload">
+                <button class="btn primary" type="button" id="choose-image-btn">Choose Image</button>
+              </div>
+              <span class="image-name" id="image-filename">No image selected</span>
+              <input type="file" id="image-file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+              <input id="image" placeholder="images/your-image.jpg" readonly style="margin-top:10px">
+              <div class="hint">JPG, PNG, WebP, or GIF. Connect GitHub token to upload from anywhere.</div>
+            </div>
+
+            <div class="field">
+              <label for="excerpt">Summary</label>
               <textarea id="excerpt" placeholder="Short summary shown on the blog listing" required></textarea>
-            </div>
-
-            <div class="field">
-              <label for="content">Full article (optional)</label>
-              <textarea id="content" placeholder="Full article body — for future article pages" style="min-height:160px"></textarea>
             </div>
 
             <div class="row2">
@@ -271,8 +264,18 @@
   const app = document.getElementById('app');
   const statusEl = document.getElementById('status');
   const postList = document.getElementById('post-list');
-  const categoryList = document.getElementById('category-list');
+  const categorySelect = document.getElementById('category');
   const form = document.getElementById('post-form');
+
+  const DEFAULT_CATEGORIES = [
+    'Retail',
+    'F&B',
+    'Hospitality',
+    'Project Management',
+    'Joinery',
+    'Turnkey',
+    'Residential',
+  ];
   const formTitle = document.getElementById('form-title');
   const deleteBtn = document.getElementById('delete-btn');
   const previewImg = document.getElementById('preview-img');
@@ -550,9 +553,49 @@
     return posts.length ? Math.max(...posts.map(p => p.id)) + 1 : 1;
   }
 
+  function parseDateForInput(value) {
+    if (!value) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+
+    const parsed = new Date(value);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString().slice(0, 10);
+    }
+
+    const monthYear = String(value).trim().match(/^([A-Za-z]+)\s+(\d{4})$/);
+    if (monthYear) {
+      const monthDate = new Date(`${monthYear[1]} 1, ${monthYear[2]}`);
+      if (!isNaN(monthDate.getTime())) {
+        return monthDate.toISOString().slice(0, 10);
+      }
+    }
+
+    return '';
+  }
+
+  function formatDisplayDate(value) {
+    if (!value) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const date = new Date(`${value}T12:00:00`);
+      return date.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+    return value;
+  }
+
   function updateCategories() {
-    const cats = [...new Set(posts.map(p => p.category).filter(Boolean))].sort();
-    categoryList.innerHTML = cats.map(c => `<option value="${c}">`).join('');
+    const fromPosts = posts.map(p => p.category).filter(Boolean);
+    const cats = [...new Set([...DEFAULT_CATEGORIES, ...fromPosts])].sort();
+    const current = categorySelect.value;
+
+    categorySelect.innerHTML =
+      '<option value="">Select category</option>' +
+      cats.map(c => `<option value="${c}">${c}</option>`).join('');
+
+    if (current) categorySelect.value = current;
   }
 
   function setImageFilename(path = '') {
@@ -602,14 +645,12 @@
     editingId = post.id;
     document.getElementById('post-id').value = post.id;
     document.getElementById('title').value = post.title;
-    document.getElementById('category').value = post.category;
-    document.getElementById('date').value = post.date;
-    document.getElementById('readTime').value = post.readTime;
+    document.getElementById('category').value = post.category || '';
+    document.getElementById('date').value = parseDateForInput(post.date);
     document.getElementById('image').value = post.image || '';
     document.getElementById('image-file').value = '';
     setImageFilename(post.image || '');
-    document.getElementById('excerpt').value = post.excerpt;
-    document.getElementById('content').value = post.content || '';
+    document.getElementById('excerpt').value = post.excerpt || '';
     document.getElementById('featured').checked = !!post.featured;
     document.getElementById('published').checked = !!post.published;
     document.getElementById('homeSelected').checked = !!post.homeSelected;
@@ -633,7 +674,7 @@
     postList.innerHTML = sorted.map(post => `
       <div class="post-item${editingId === post.id ? ' active' : ''}" data-id="${post.id}">
         <div class="pi-title">${post.title}</div>
-        <div class="pi-meta">${post.category} · ${post.date}</div>
+        <div class="pi-meta">${post.category} · ${formatDisplayDate(post.date)}</div>
         <div class="pi-badges">
           ${post.featured ? '<span class="badge featured">Featured</span>' : ''}
           ${post.homeSelected ? '<span class="badge home">Home</span>' : ''}
@@ -727,10 +768,8 @@
     const title = document.getElementById('title').value.trim();
     const category = document.getElementById('category').value.trim();
     const date = document.getElementById('date').value.trim();
-    const readTime = document.getElementById('readTime').value.trim();
     const image = document.getElementById('image').value.trim();
     const excerpt = document.getElementById('excerpt').value.trim();
-    const content = document.getElementById('content').value.trim();
     const featured = document.getElementById('featured').checked;
     const published = document.getElementById('published').checked;
     const homeSelected = document.getElementById('homeSelected').checked;
@@ -740,10 +779,8 @@
       slug: slugify(title),
       category,
       date,
-      readTime,
       image,
       excerpt,
-      content,
       featured,
       published,
       homeSelected,
