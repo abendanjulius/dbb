@@ -30,6 +30,10 @@ OG_TAG_RE = re.compile(
     r'<meta\s+property="og:(?P<key>image|title|description)"\s+content="(?P<value>.*?)"\s*/?>',
     re.IGNORECASE | re.DOTALL,
 )
+POST_DATE_RE = re.compile(
+    r"on\s+([A-Za-z]+\s+\d{1,2},\s+\d{4})",
+    re.IGNORECASE,
+)
 
 
 def load_config() -> dict:
@@ -105,14 +109,35 @@ def parse_open_graph(page_html: str) -> dict[str, str]:
     return values
 
 
-def fetch_via_open_graph(url: str) -> dict[str, str]:
-    page_html = fetch_url(url)
+def parse_post_date(page_html: str) -> str | None:
+    match = POST_DATE_RE.search(page_html)
+    if not match:
+        return None
+    try:
+        posted = datetime.strptime(match.group(1), "%B %d, %Y").replace(
+            tzinfo=timezone.utc
+        )
+    except ValueError:
+        return None
+    return posted.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def parse_open_graph_meta(page_html: str) -> dict[str, str]:
     og = parse_open_graph(page_html)
     caption = clean_caption(og.get("title") or og.get("description") or "")
     thumbnail = og.get("image", "")
     if not thumbnail:
         raise ValueError("Could not find og:image on Instagram post page")
-    return {"caption": caption, "thumbnail_url": thumbnail}
+    return {
+        "caption": caption,
+        "thumbnail_url": thumbnail,
+        "publishedAt": parse_post_date(page_html) or "",
+    }
+
+
+def fetch_via_open_graph(url: str) -> dict[str, str]:
+    page_html = fetch_url(url)
+    return parse_open_graph_meta(page_html)
 
 
 def fetch_via_graph_api(url: str, token: str) -> dict[str, str]:
@@ -129,7 +154,7 @@ def fetch_via_graph_api(url: str, token: str) -> dict[str, str]:
     thumbnail = payload.get("thumbnail_url", "")
     if not thumbnail:
         raise ValueError("Graph API oEmbed response missing thumbnail_url")
-    return {"caption": caption, "thumbnail_url": thumbnail}
+    return {"caption": caption, "thumbnail_url": thumbnail, "publishedAt": ""}
 
 
 def download_image(thumbnail_url: str, dest: Path) -> None:
@@ -164,23 +189,47 @@ def merge_post_entries(data: dict) -> list[dict]:
     return posts
 
 
+def sort_posts_by_date(posts: list[dict]) -> list[dict]:
+    def sort_key(post: dict) -> tuple[str, str, str]:
+        return (
+            post.get("publishedAt") or "",
+            post.get("syncedAt") or "",
+            post.get("url") or "",
+        )
+
+    return sorted(posts, key=sort_key, reverse=True)
+
+
 def sync_post(entry: dict, token: str | None) -> dict:
     url = entry["url"]
     shortcode = extract_shortcode(url)
     meta: dict[str, str]
 
     errors = []
+    page_html = ""
     if token:
         try:
             meta = fetch_via_graph_api(url, token)
         except Exception as exc:  # noqa: BLE001
             errors.append(f"graph:{exc}")
-            meta = fetch_via_open_graph(url)
+            page_html = fetch_url(url)
+            meta = parse_open_graph_meta(page_html)
     else:
         try:
-            meta = fetch_via_open_graph(url)
+            page_html = fetch_url(url)
+            meta = parse_open_graph_meta(page_html)
         except Exception as exc:  # noqa: BLE001
             raise RuntimeError(f"Failed to sync {url}: {exc}") from exc
+
+    if not meta.get("publishedAt"):
+        if not page_html:
+            try:
+                page_html = fetch_url(url)
+            except Exception as exc:  # noqa: BLE001
+                errors.append(f"date:{exc}")
+                page_html = ""
+        if page_html:
+            meta["publishedAt"] = parse_post_date(page_html) or ""
 
     IMAGES_DIR.mkdir(exist_ok=True)
     image_name = f"ig-{shortcode}.jpg"
@@ -195,6 +244,7 @@ def sync_post(entry: dict, token: str | None) -> dict:
         "url": url,
         "image": f"images/{image_name}",
         "caption": meta.get("caption") or entry.get("caption") or "",
+        "publishedAt": meta.get("publishedAt") or entry.get("publishedAt") or "",
         "syncedAt": synced_at,
     }
     if errors:
@@ -207,7 +257,6 @@ def main() -> int:
     data = load_config()
     posts = merge_post_entries(data)
     max_posts = int(data.get("maxPosts", 12) or 12)
-    posts = posts[:max_posts]
 
     if not posts:
         print("No Instagram post URLs found in instagram.json")
@@ -225,7 +274,7 @@ def main() -> int:
             else:
                 raise
 
-    data["posts"] = synced_posts
+    data["posts"] = sort_posts_by_date(synced_posts)[:max_posts]
     data.pop("urls", None)
     data["mode"] = "oembed"
     data["lastSyncedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

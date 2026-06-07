@@ -586,7 +586,9 @@
         followLink.textContent = `Follow @${handle}`;
       }
 
-      const readyPosts = posts.filter(post => post.image && post.url);
+      const readyPosts = posts
+        .filter(post => post.image && post.url)
+        .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
       renderCuratedInstagram(container, readyPosts, profileUrl);
     } catch (err) {
       console.error('Failed to load Instagram feed:', err);

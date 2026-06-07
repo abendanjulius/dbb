@@ -268,7 +268,7 @@
           <p class="hint" id="tab-hint" style="margin-bottom:14px"></p>
           <div class="slot-editor-panel hidden" id="instagram-editor">
             <h3>From the studio</h3>
-            <p class="slot-current">Curate the home page Instagram feed for <strong>@creativedbb</strong>. Paste a post or reel URL — the thumbnail syncs automatically and the homepage updates within a minute or two.</p>
+            <p class="slot-current">Curate the home page Instagram feed for <strong>@creativedbb</strong>. Paste a post or reel URL — posts are auto-sorted by publish date (newest first) and thumbnails sync within a minute or two.</p>
             <div class="field">
               <label for="ig-url-input">Instagram post URL</label>
               <input id="ig-url-input" type="url" placeholder="https://www.instagram.com/reel/..." autocomplete="off">
@@ -684,13 +684,22 @@
     document.getElementById('instagram-editor').classList.add('hidden');
   }
 
+  function sortInstagramPosts(posts) {
+    return [...posts].sort((a, b) => {
+      const aDate = a.publishedAt || '';
+      const bDate = b.publishedAt || '';
+      if (aDate !== bDate) return bDate.localeCompare(aDate);
+      return (b.syncedAt || b.url || '').localeCompare(a.syncedAt || a.url || '');
+    });
+  }
+
   function applyInstagramPayload(data) {
     instagramData = {
       handle: data.handle || instagramData.handle || 'creativedbb',
       profileUrl: data.profileUrl || instagramData.profileUrl || 'https://www.instagram.com/creativedbb/',
       maxPosts: Number(data.maxPosts) || instagramData.maxPosts || 12,
       mode: data.mode,
-      posts: Array.isArray(data.posts) ? data.posts : [],
+      posts: sortInstagramPosts(Array.isArray(data.posts) ? data.posts : []),
       lastSyncedAt: data.lastSyncedAt,
     };
     updateTabCounts();
@@ -767,9 +776,9 @@
       const existing = normalizeInstagramUrl(post.url || '');
       return extractInstagramShortcode(existing) !== shortcode;
     });
-    instagramData.posts.unshift({ url });
+    instagramData.posts.push({ url });
     const maxPosts = Number(instagramData.maxPosts) || 12;
-    instagramData.posts = instagramData.posts.slice(0, maxPosts);
+    instagramData.posts = sortInstagramPosts(instagramData.posts).slice(0, maxPosts);
 
     document.getElementById('ig-url-input').value = '';
     renderPostList();
@@ -1139,7 +1148,7 @@
     all: 'Every journal post — published and draft.',
     featured: 'Click the featured slot to replace it. One post is shown large at the top of the blog.',
     home: 'Click a slot to replace it or change order. Slot 1 appears first on the home page (max 4).',
-    instagram: 'Newest URLs appear first on the home page (max 12). Adding a post syncs its thumbnail automatically.',
+    instagram: 'Posts are sorted by Instagram publish date (newest first, max 12). Adding a post syncs its thumbnail automatically.',
   };
 
   function getFeaturedPost() {
@@ -1255,6 +1264,17 @@
     renderPostList();
   }
 
+  function formatInstagramDate(isoDate) {
+    if (!isoDate) return 'Date pending sync';
+    const parsed = new Date(isoDate);
+    if (Number.isNaN(parsed.getTime())) return 'Date pending sync';
+    return parsed.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
   function renderInstagramItem(post, index) {
     const shortcode = post.shortcode || extractInstagramShortcode(post.url || '');
     const title = post.caption || shortcode || 'Instagram post';
@@ -1267,7 +1287,7 @@
       <div class="post-item ig-item">
         ${thumb}
         <div>
-          <div class="pi-slot">Feed #${index + 1}</div>
+          <div class="pi-slot">Feed #${index + 1} · ${formatInstagramDate(post.publishedAt)}</div>
           <div class="pi-title">${escapeHtml(title)}</div>
           <div class="pi-meta">${escapeHtml(post.url || '')}</div>
           <div class="pi-badges">
@@ -1450,7 +1470,7 @@
         profileUrl: data.profileUrl || 'https://www.instagram.com/creativedbb/',
         maxPosts: Number(data.maxPosts) || 12,
         mode: data.mode,
-        posts: Array.isArray(data.posts) ? data.posts : [],
+        posts: sortInstagramPosts(Array.isArray(data.posts) ? data.posts : []),
         lastSyncedAt: data.lastSyncedAt,
       };
     } catch (_) {
