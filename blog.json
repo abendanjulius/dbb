@@ -97,20 +97,6 @@
       "featured": false,
       "published": true,
       "homeSelected": false
-    },
-    {
-      "id": 8,
-      "title": "Test Article",
-      "slug": "test-article",
-      "category": "F&B",
-      "date": "june  8, 2026 3:19 PM",
-      "readTime": "5",
-      "image": "images/1780821887754-0740.jpg",
-      "excerpt": "sadsadasdsadasdasd",
-      "content": "asdsadasdsadsad",
-      "featured": false,
-      "published": true,
-      "homeSelected": false
     }
   ]
 }
