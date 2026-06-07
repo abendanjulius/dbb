@@ -38,7 +38,7 @@
       "image": "images/shrimppot.jpg",
       "date": "March 2026",
       "readTime": "4 min read",
-      "featured": false,
+      "featured": true,
       "published": true,
       "homeSelected": false
     },
