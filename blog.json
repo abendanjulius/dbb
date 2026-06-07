@@ -11,7 +11,8 @@
       "date": "May 2026",
       "readTime": "6 min read",
       "featured": false,
-      "published": true
+      "published": true,
+      "homeSelected": false
     },
     {
       "id": 6,
@@ -24,7 +25,8 @@
       "date": "April 2026",
       "readTime": "5 min read",
       "featured": false,
-      "published": true
+      "published": true,
+      "homeSelected": false
     },
     {
       "id": 5,
@@ -37,7 +39,8 @@
       "date": "March 2026",
       "readTime": "4 min read",
       "featured": false,
-      "published": true
+      "published": true,
+      "homeSelected": false
     },
     {
       "id": 4,
@@ -50,7 +53,8 @@
       "date": "February 2026",
       "readTime": "7 min read",
       "featured": false,
-      "published": true
+      "published": true,
+      "homeSelected": false
     },
     {
       "id": 3,
@@ -63,7 +67,8 @@
       "date": "January 2026",
       "readTime": "5 min read",
       "featured": false,
-      "published": true
+      "published": true,
+      "homeSelected": false
     },
     {
       "id": 2,
@@ -76,7 +81,8 @@
       "date": "December 2025",
       "readTime": "6 min read",
       "featured": false,
-      "published": true
+      "published": true,
+      "homeSelected": false
     },
     {
       "id": 1,
@@ -89,7 +95,8 @@
       "date": "November 2025",
       "readTime": "5 min read",
       "featured": false,
-      "published": true
+      "published": true,
+      "homeSelected": false
     },
     {
       "id": 8,
@@ -102,7 +109,8 @@
       "excerpt": "sadsadasdsadasdasd",
       "content": "asdsadasdsadsad",
       "featured": true,
-      "published": true
+      "published": true,
+      "homeSelected": true
     }
   ]
 }
