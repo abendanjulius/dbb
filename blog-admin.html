@@ -115,10 +115,10 @@
   .post-item.slot-item.empty{opacity:.75}
   .post-item .pi-slot{font-size:10px;letter-spacing:.16em;color:var(--gold-l);text-transform:uppercase;margin-bottom:4px}
 
-  .home-slot-editor{margin-top:16px;padding:20px;border:1px solid var(--line);background:var(--black)}
-  .home-slot-editor h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);font-weight:400;margin-bottom:6px}
-  .home-slot-editor .slot-current{color:var(--mut);font-size:14px;line-height:1.5;margin-bottom:16px}
-  .home-slot-editor .slot-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .slot-editor-panel{margin-top:16px;padding:20px;border:1px solid var(--line);background:var(--black)}
+  .slot-editor-panel h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);font-weight:400;margin-bottom:6px}
+  .slot-editor-panel .slot-current{color:var(--mut);font-size:14px;line-height:1.5;margin-bottom:16px}
+  .slot-editor-panel .slot-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 
   /* LOGIN */
   .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px;position:relative;z-index:1}
@@ -262,7 +262,19 @@
           </div>
           <p class="hint" id="tab-hint" style="margin-bottom:14px"></p>
           <div class="post-list" id="post-list"></div>
-          <div class="home-slot-editor hidden" id="home-slot-editor">
+          <div class="slot-editor-panel hidden" id="featured-slot-editor">
+            <h3 id="featured-editor-title">Blog featured post</h3>
+            <p class="slot-current" id="featured-editor-current"></p>
+            <div class="field">
+              <label for="featured-replace-select">Replace with</label>
+              <select id="featured-replace-select"></select>
+            </div>
+            <div class="slot-actions">
+              <button class="btn danger" type="button" id="featured-remove">Remove featured</button>
+              <button class="btn primary" type="button" id="featured-apply">Apply replacement</button>
+            </div>
+          </div>
+          <div class="slot-editor-panel hidden" id="home-slot-editor">
             <h3 id="slot-editor-title">Edit home slot</h3>
             <p class="slot-current" id="slot-editor-current"></p>
             <div class="field">
@@ -297,6 +309,7 @@
   let editingId = null;
   let activePostTab = 'all';
   let editingSlotIndex = null;
+  let featuredEditorActive = false;
   let projectPool = [];
 
   const STATIC_PROJECT_POOL = [
@@ -922,20 +935,104 @@
 
   const TAB_HINTS = {
     all: 'Every journal post — published and draft.',
-    featured: 'The post shown large at the top of the blog page. Only one at a time.',
+    featured: 'Click the featured slot to replace it. One post is shown large at the top of the blog.',
     home: 'Click a slot to replace it or change order. Slot 1 appears first on the home page (max 4).',
   };
 
+  function getFeaturedPost() {
+    return posts.find(p => p.featured);
+  }
+
+  function hideFeaturedEditor() {
+    featuredEditorActive = false;
+    document.getElementById('featured-slot-editor').classList.add('hidden');
+  }
+
+  function showFeaturedEditor() {
+    featuredEditorActive = true;
+    const post = getFeaturedPost();
+    const editor = document.getElementById('featured-slot-editor');
+
+    document.getElementById('featured-editor-title').textContent =
+      post ? 'Edit blog featured post' : 'Assign blog featured post';
+
+    document.getElementById('featured-editor-current').textContent = post
+      ? `Currently: ${post.title}`
+      : 'No featured post yet. Choose one below — it appears large at the top of the blog page.';
+
+    const select = document.getElementById('featured-replace-select');
+    const sorted = [...posts].sort((a, b) => b.id - a.id);
+    select.innerHTML =
+      '<option value="">Select a post…</option>' +
+      sorted.map(p => {
+        const selected = post && post.id === p.id ? ' selected' : '';
+        return `<option value="${p.id}"${selected}>${p.title}</option>`;
+      }).join('');
+
+    document.getElementById('featured-remove').disabled = !post;
+    editor.classList.remove('hidden');
+    renderPostList();
+  }
+
+  function applyFeaturedReplacement() {
+    const select = document.getElementById('featured-replace-select');
+    const postId = Number(select.value);
+    if (!postId) {
+      showStatus('Choose a post to feature on the blog.', 'err');
+      return;
+    }
+
+    ensureSingleFeatured(postId);
+    showFeaturedEditor();
+    showStatus('Blog featured post updated. Click "Save Changes" to persist.');
+  }
+
+  function removeFeaturedPost() {
+    posts.forEach(post => {
+      post.featured = false;
+    });
+    hideFeaturedEditor();
+    renderPostList();
+    showStatus('Featured post removed. Click "Save Changes" to persist.');
+  }
+
+  function renderFeaturedSlotItem() {
+    const post = getFeaturedPost();
+    const selected = featuredEditorActive ? ' selected-slot' : '';
+
+    if (!post) {
+      return `
+        <div class="post-item slot-item empty${selected}" data-featured-slot="1">
+          <div class="pi-slot">Blog featured</div>
+          <div class="pi-title" style="color:var(--mut)">No featured post</div>
+          <div class="pi-meta">Click to assign a post</div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="post-item slot-item${selected}" data-featured-slot="1" data-id="${post.id}">
+        <div class="pi-slot">Blog featured</div>
+        <div class="pi-title">${post.title}</div>
+        <div class="pi-meta">${post.category} · ${formatDisplayDate(post.date)}</div>
+        <div class="pi-badges">
+          <span class="badge featured">Shown on blog</span>
+          ${post.published ? '<span class="badge">Published</span>' : '<span class="badge draft">Draft</span>'}
+        </div>
+      </div>
+    `;
+  }
+
   function updateTabCounts() {
-    const featuredCount = posts.filter(p => p.featured).length;
     document.getElementById('tab-count-all').textContent = `(${posts.length})`;
-    document.getElementById('tab-count-featured').textContent = `(${featuredCount})`;
+    document.getElementById('tab-count-featured').textContent = `(${getFeaturedPost() ? 1 : 0})`;
     document.getElementById('tab-count-home').textContent = `(${selectedWork.items.length})`;
   }
 
   function setActivePostTab(tab) {
     activePostTab = tab;
     if (tab !== 'home') hideSlotEditor();
+    if (tab !== 'featured') hideFeaturedEditor();
     document.querySelectorAll('.post-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
@@ -1029,13 +1126,12 @@
     updateTabCounts();
 
     if (activePostTab === 'featured') {
-      const featuredPosts = [...posts].filter(p => p.featured).sort((a, b) => b.id - a.id);
-      if (!featuredPosts.length) {
-        postList.innerHTML = '<div class="empty">No blog featured post yet. Tick “Featured post” on a post to show it large at the top of the blog.</div>';
-        return;
-      }
-      postList.innerHTML = featuredPosts.map(renderPostItem).join('');
+      postList.innerHTML = renderFeaturedSlotItem();
+      postList.querySelectorAll('.post-item.slot-item').forEach(el => {
+        el.addEventListener('click', () => showFeaturedEditor());
+      });
     } else if (activePostTab === 'home') {
+      hideFeaturedEditor();
       const queue = getHomeQueueEntries();
       postList.innerHTML = queue.map(renderHomeQueueItem).join('');
 
@@ -1046,20 +1142,21 @@
       });
     } else {
       hideSlotEditor();
+      hideFeaturedEditor();
       const sorted = [...posts].sort((a, b) => b.id - a.id);
       if (!sorted.length) {
         postList.innerHTML = '<div class="empty">No posts yet. Create your first article.</div>';
         return;
       }
       postList.innerHTML = sorted.map(renderPostItem).join('');
-    }
 
-    postList.querySelectorAll('.post-item:not(.static)').forEach(el => {
-      el.addEventListener('click', () => {
-        const post = posts.find(p => p.id === Number(el.dataset.id));
-        if (post) fillForm(post);
+      postList.querySelectorAll('.post-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const post = posts.find(p => p.id === Number(el.dataset.id));
+          if (post) fillForm(post);
+        });
       });
-    });
+    }
   }
 
   async function loadPosts() {
@@ -1255,6 +1352,9 @@
     if (!tab) return;
     setActivePostTab(tab.dataset.tab);
   });
+
+  document.getElementById('featured-apply').addEventListener('click', applyFeaturedReplacement);
+  document.getElementById('featured-remove').addEventListener('click', removeFeaturedPost);
 
   document.getElementById('slot-apply').addEventListener('click', applySlotReplacement);
   document.getElementById('slot-move-up').addEventListener('click', () => moveHomeSlot(-1));
