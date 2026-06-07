@@ -457,7 +457,7 @@
 
   async function loadBlog() {
     try {
-      const res = await fetch('blog.json');
+      const res = await fetch('blog.json?v=' + Date.now(), { cache: 'no-store' });
       const data = await res.json();
       allPosts = Array.isArray(data.posts) ? data.posts : [];
       const categories = [...new Set(allPosts.map(p => p.category).filter(Boolean))].sort();
