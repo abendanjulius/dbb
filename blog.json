@@ -10,7 +10,7 @@
       "image": "images/clivechristian.jpg",
       "date": "May 2026",
       "readTime": "6 min read",
-      "featured": true,
+      "featured": false,
       "published": true
     },
     {
@@ -89,6 +89,19 @@
       "date": "November 2025",
       "readTime": "5 min read",
       "featured": false,
+      "published": true
+    },
+    {
+      "id": 8,
+      "title": "Test Article",
+      "slug": "test-article",
+      "category": "F&B",
+      "date": "May 8, 2025 3:19 PM",
+      "readTime": "5",
+      "image": "images/1780821887754-0740.jpg",
+      "excerpt": "sadsadasdsadasdasd",
+      "content": "asdsadasdsadsad",
+      "featured": true,
       "published": true
     }
   ]
