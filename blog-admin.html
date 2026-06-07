@@ -120,6 +120,10 @@
   .slot-editor-panel .slot-current{color:var(--mut);font-size:14px;line-height:1.5;margin-bottom:16px}
   .slot-editor-panel .slot-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 
+  .ig-item{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;cursor:default}
+  .ig-thumb{width:52px;height:52px;object-fit:cover;border:1px solid var(--line);background:#111}
+  .ig-thumb.placeholder{display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+
   /* LOGIN */
   .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px;position:relative;z-index:1}
   .login{max-width:420px;width:100%;border:1px solid var(--line);background:var(--black2);padding:36px}
@@ -259,8 +263,20 @@
             <button class="post-tab active" type="button" data-tab="all">All Posts <span id="tab-count-all"></span></button>
             <button class="post-tab" type="button" data-tab="featured">Blog Featured <span id="tab-count-featured"></span></button>
             <button class="post-tab" type="button" data-tab="home">Home Page <span id="tab-count-home"></span></button>
+            <button class="post-tab" type="button" data-tab="instagram">Instagram <span id="tab-count-instagram"></span></button>
           </div>
           <p class="hint" id="tab-hint" style="margin-bottom:14px"></p>
+          <div class="slot-editor-panel hidden" id="instagram-editor">
+            <h3>From the studio</h3>
+            <p class="slot-current">Curate the home page Instagram feed for <strong>@creativedbb</strong>. Paste a post or reel URL — the thumbnail syncs automatically and the homepage updates within a minute or two.</p>
+            <div class="field">
+              <label for="ig-url-input">Instagram post URL</label>
+              <input id="ig-url-input" type="url" placeholder="https://www.instagram.com/reel/..." autocomplete="off">
+            </div>
+            <div class="slot-actions">
+              <button class="btn primary" type="button" id="ig-add-btn">Add Post</button>
+            </div>
+          </div>
           <div class="post-list" id="post-list"></div>
           <div class="slot-editor-panel hidden" id="featured-slot-editor">
             <h3 id="featured-editor-title">Blog featured post</h3>
@@ -306,6 +322,12 @@
 
   let posts = [];
   let selectedWork = { items: [] };
+  let instagramData = {
+    handle: 'creativedbb',
+    profileUrl: 'https://www.instagram.com/creativedbb/',
+    maxPosts: 12,
+    posts: [],
+  };
   let editingId = null;
   let activePostTab = 'all';
   let editingSlotIndex = null;
@@ -363,6 +385,8 @@
   const postList = document.getElementById('post-list');
   const categorySelect = document.getElementById('category');
   const form = document.getElementById('post-form');
+
+  const IG_SHORTCODE_RE = /instagram\.com\/(?:p|reel|tv)\/([^/?#]+)/i;
 
   const DEFAULT_CATEGORIES = [
     'Retail',
@@ -601,6 +625,184 @@
     }
 
     throw new Error('No save method available');
+  }
+
+  async function persistInstagram(message) {
+    const jsonText = JSON.stringify(instagramData, null, 2) + '\n';
+
+    if (backendMode === 'local') {
+      const res = await fetch('/api/instagram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: jsonText,
+      });
+      if (!res.ok) throw new Error('Local instagram save failed');
+      return;
+    }
+
+    if (backendMode === 'github') {
+      await githubPutFile('instagram.json', textToBase64(jsonText), message || 'Update Instagram feed');
+      return;
+    }
+
+    throw new Error('No save method available');
+  }
+
+  function escapeHtml(text) {
+    return String(text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function normalizeInstagramUrl(url) {
+    const trimmed = String(url || '').trim();
+    if (!trimmed) return '';
+    const match = trimmed.match(IG_SHORTCODE_RE);
+    if (!match) return trimmed;
+    const shortcode = match[1];
+    if (/\/reel\//i.test(trimmed)) {
+      return `https://www.instagram.com/reel/${shortcode}/`;
+    }
+    if (/\/tv\//i.test(trimmed)) {
+      return `https://www.instagram.com/tv/${shortcode}/`;
+    }
+    return `https://www.instagram.com/p/${shortcode}/`;
+  }
+
+  function extractInstagramShortcode(url) {
+    const match = String(url || '').match(IG_SHORTCODE_RE);
+    return match ? match[1] : '';
+  }
+
+  function showInstagramEditor() {
+    document.getElementById('instagram-editor').classList.remove('hidden');
+  }
+
+  function hideInstagramEditor() {
+    document.getElementById('instagram-editor').classList.add('hidden');
+  }
+
+  function applyInstagramPayload(data) {
+    instagramData = {
+      handle: data.handle || instagramData.handle || 'creativedbb',
+      profileUrl: data.profileUrl || instagramData.profileUrl || 'https://www.instagram.com/creativedbb/',
+      maxPosts: Number(data.maxPosts) || instagramData.maxPosts || 12,
+      mode: data.mode,
+      posts: Array.isArray(data.posts) ? data.posts : [],
+      lastSyncedAt: data.lastSyncedAt,
+    };
+    updateTabCounts();
+    renderPostList();
+  }
+
+  async function ensureInstagramBackend() {
+    if (backendMode === 'offline') {
+      await checkBackend();
+    }
+    if (backendMode === 'offline') {
+      throw new Error('Connect GitHub or start local server to publish Instagram posts.');
+    }
+  }
+
+  async function syncInstagramFeed(shortcode) {
+    await ensureInstagramBackend();
+
+    if (backendMode === 'local') {
+      const res = await fetch('/api/instagram/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(instagramData),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Instagram sync failed');
+      }
+      applyInstagramPayload(data.data);
+      showStatus('Instagram post synced — already live on the homepage.');
+      return true;
+    }
+
+    await persistInstagram('Add Instagram post');
+    return waitForInstagramSync(shortcode);
+  }
+
+  async function waitForInstagramSync(shortcode) {
+    const deadline = Date.now() + 180000;
+    showStatus('Syncing thumbnail — homepage will update shortly…');
+    await new Promise(resolve => setTimeout(resolve, 8000));
+
+    while (Date.now() < deadline) {
+      try {
+        const res = await fetch('instagram.json?' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          const post = (data.posts || []).find(entry =>
+            (entry.shortcode || extractInstagramShortcode(entry.url || '')) === shortcode
+          );
+          if (post?.image) {
+            applyInstagramPayload(data);
+            showStatus('Instagram post is live on the homepage.');
+            return true;
+          }
+        }
+      } catch (_) {}
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+
+    showStatus('URL saved. Thumbnail is still syncing — refresh the homepage in a minute or two.', 'err');
+    return false;
+  }
+
+  async function addInstagramUrl(rawUrl) {
+    const url = normalizeInstagramUrl(rawUrl);
+    if (!url || !IG_SHORTCODE_RE.test(url)) {
+      showStatus('Paste a valid Instagram post, reel, or TV URL.', 'err');
+      return false;
+    }
+
+    const shortcode = extractInstagramShortcode(url);
+    instagramData.posts = (instagramData.posts || []).filter(post => {
+      const existing = normalizeInstagramUrl(post.url || '');
+      return extractInstagramShortcode(existing) !== shortcode;
+    });
+    instagramData.posts.unshift({ url });
+    const maxPosts = Number(instagramData.maxPosts) || 12;
+    instagramData.posts = instagramData.posts.slice(0, maxPosts);
+
+    document.getElementById('ig-url-input').value = '';
+    renderPostList();
+
+    const addBtn = document.getElementById('ig-add-btn');
+    addBtn.disabled = true;
+    addBtn.textContent = 'Syncing…';
+
+    try {
+      await syncInstagramFeed(shortcode);
+      return true;
+    } catch (err) {
+      showStatus(formatFetchError(err), 'err');
+      return false;
+    } finally {
+      addBtn.disabled = false;
+      addBtn.textContent = 'Add Post';
+    }
+  }
+
+  async function removeInstagramPost(index) {
+    if (!Array.isArray(instagramData.posts) || index < 0 || index >= instagramData.posts.length) return;
+
+    instagramData.posts.splice(index, 1);
+    renderPostList();
+
+    try {
+      await ensureInstagramBackend();
+      await persistInstagram('Remove Instagram post');
+      showStatus('Removed from Instagram feed — homepage updated.');
+    } catch (err) {
+      showStatus(formatFetchError(err), 'err');
+    }
   }
 
   function postToSelectedWorkItem(post) {
@@ -937,6 +1139,7 @@
     all: 'Every journal post — published and draft.',
     featured: 'Click the featured slot to replace it. One post is shown large at the top of the blog.',
     home: 'Click a slot to replace it or change order. Slot 1 appears first on the home page (max 4).',
+    instagram: 'Newest URLs appear first on the home page (max 12). Adding a post syncs its thumbnail automatically.',
   };
 
   function getFeaturedPost() {
@@ -1036,17 +1239,44 @@
     document.getElementById('tab-count-all').textContent = `(${posts.length})`;
     document.getElementById('tab-count-featured').textContent = `(${getFeaturedPost() ? 1 : 0})`;
     document.getElementById('tab-count-home').textContent = `(${selectedWork.items.length})`;
+    document.getElementById('tab-count-instagram').textContent = `(${(instagramData.posts || []).length})`;
   }
 
   function setActivePostTab(tab) {
     activePostTab = tab;
     if (tab !== 'home') hideSlotEditor();
     if (tab !== 'featured') hideFeaturedEditor();
+    if (tab === 'instagram') showInstagramEditor();
+    else hideInstagramEditor();
     document.querySelectorAll('.post-tab').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
     document.getElementById('tab-hint').textContent = TAB_HINTS[tab] || '';
     renderPostList();
+  }
+
+  function renderInstagramItem(post, index) {
+    const shortcode = post.shortcode || extractInstagramShortcode(post.url || '');
+    const title = post.caption || shortcode || 'Instagram post';
+    const synced = Boolean(post.image);
+    const thumb = post.image
+      ? `<img class="ig-thumb" src="${escapeHtml(post.image)}" alt="">`
+      : '<div class="ig-thumb placeholder">Sync</div>';
+
+    return `
+      <div class="post-item ig-item">
+        ${thumb}
+        <div>
+          <div class="pi-slot">Feed #${index + 1}</div>
+          <div class="pi-title">${escapeHtml(title)}</div>
+          <div class="pi-meta">${escapeHtml(post.url || '')}</div>
+          <div class="pi-badges">
+            ${synced ? '<span class="badge">Synced</span>' : '<span class="badge draft">Pending sync</span>'}
+          </div>
+        </div>
+        <button class="btn danger" type="button" data-ig-remove="${index}">Remove</button>
+      </div>
+    `;
   }
 
   function renderPostItem(post) {
@@ -1149,9 +1379,25 @@
           showSlotEditor(Number(el.dataset.slotIndex));
         });
       });
+    } else if (activePostTab === 'instagram') {
+      hideSlotEditor();
+      hideFeaturedEditor();
+      const igPosts = instagramData.posts || [];
+      if (!igPosts.length) {
+        postList.innerHTML = '<div class="empty">No Instagram posts yet. Paste a URL above and click Add Post.</div>';
+        return;
+      }
+      postList.innerHTML = igPosts.map(renderInstagramItem).join('');
+      postList.querySelectorAll('[data-ig-remove]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeInstagramPost(Number(btn.dataset.igRemove));
+        });
+      });
     } else {
       hideSlotEditor();
       hideFeaturedEditor();
+      hideInstagramEditor();
       const sorted = [...posts].sort((a, b) => b.id - a.id);
       if (!sorted.length) {
         postList.innerHTML = '<div class="empty">No posts yet. Create your first article.</div>';
@@ -1196,6 +1442,26 @@
       projectPool = [];
     }
 
+    try {
+      const res = await fetch('instagram.json?' + Date.now());
+      const data = await res.json();
+      instagramData = {
+        handle: data.handle || 'creativedbb',
+        profileUrl: data.profileUrl || 'https://www.instagram.com/creativedbb/',
+        maxPosts: Number(data.maxPosts) || 12,
+        mode: data.mode,
+        posts: Array.isArray(data.posts) ? data.posts : [],
+        lastSyncedAt: data.lastSyncedAt,
+      };
+    } catch (_) {
+      instagramData = {
+        handle: 'creativedbb',
+        profileUrl: 'https://www.instagram.com/creativedbb/',
+        maxPosts: 12,
+        posts: [],
+      };
+    }
+
     syncHomeSelectedFlags();
     updateCategories();
     setActivePostTab(activePostTab);
@@ -1213,10 +1479,11 @@
     try {
       await persistBlog('Update blog posts');
       await persistSelectedWork('Update home selected work');
+      await persistInstagram('Update Instagram feed');
       if (backendMode === 'github') {
         showStatus('Saved to GitHub. Live site updates in 1–2 minutes.');
       } else {
-        showStatus('Saved to blog.json and selected-work.json.');
+        showStatus('Saved to blog.json, selected-work.json, and instagram.json.');
       }
       return true;
     } catch (err) {
@@ -1236,6 +1503,14 @@
       swA.download = 'selected-work.json';
       swA.click();
       URL.revokeObjectURL(swUrl);
+
+      const igBlob = new Blob([JSON.stringify(instagramData, null, 2)], { type: 'application/json' });
+      const igUrl = URL.createObjectURL(igBlob);
+      const igA = document.createElement('a');
+      igA.href = igUrl;
+      igA.download = 'instagram.json';
+      igA.click();
+      URL.revokeObjectURL(igUrl);
 
       showStatus((err.message || 'Save failed') + ' — JSON files downloaded as backup.', 'err');
       return false;
@@ -1365,6 +1640,17 @@
     const tab = e.target.closest('.post-tab');
     if (!tab) return;
     setActivePostTab(tab.dataset.tab);
+  });
+
+  document.getElementById('ig-add-btn').addEventListener('click', async () => {
+    await addInstagramUrl(document.getElementById('ig-url-input').value);
+  });
+
+  document.getElementById('ig-url-input').addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      await addInstagramUrl(e.target.value);
+    }
   });
 
   document.getElementById('featured-apply').addEventListener('click', applyFeaturedReplacement);

@@ -1,6 +1,11 @@
 name: Sync Instagram feed
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - instagram.json
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:
@@ -33,6 +38,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No Instagram changes to commit."
           else
-            git commit -m "Sync Instagram feed"
+            git commit -m "Sync Instagram feed [skip ci]"
             git push
           fi

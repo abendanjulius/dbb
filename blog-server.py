@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import subprocess
 import sys
 import time
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -13,6 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 BLOG_FILE = ROOT / "blog.json"
 SELECTED_WORK_FILE = ROOT / "selected-work.json"
+INSTAGRAM_FILE = ROOT / "instagram.json"
 IMAGES_DIR = ROOT / "images"
 PORT = 8080
 ALLOWED_IMAGE_TYPES = {
@@ -47,6 +50,14 @@ class BlogHandler(SimpleHTTPRequestHandler):
 
         if self.path == "/api/selected-work":
             self._save_selected_work(raw)
+            return
+
+        if self.path == "/api/instagram":
+            self._save_instagram(raw)
+            return
+
+        if self.path == "/api/instagram/sync":
+            self._sync_instagram(raw)
             return
 
         if self.path == "/api/upload":
@@ -96,6 +107,63 @@ class BlogHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.end_headers()
         self.wfile.write(b'{"ok":true}')
+
+    def _save_instagram(self, raw: bytes) -> None:
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+            if "posts" not in payload or not isinstance(payload["posts"], list):
+                raise ValueError("Invalid Instagram data: missing posts array")
+            INSTAGRAM_FILE.write_text(
+                json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+        except (json.JSONDecodeError, ValueError) as exc:
+            self.send_response(400)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": False, "error": str(exc)}).encode())
+            return
+
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(b'{"ok":true}')
+
+    def _sync_instagram(self, raw: bytes) -> None:
+        try:
+            if raw:
+                payload = json.loads(raw.decode("utf-8"))
+                if "posts" not in payload or not isinstance(payload["posts"], list):
+                    raise ValueError("Invalid Instagram data: missing posts array")
+                INSTAGRAM_FILE.write_text(
+                    json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+                    encoding="utf-8",
+                )
+
+            result = subprocess.run(
+                [sys.executable, str(ROOT / "scripts" / "sync-instagram.py")],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                timeout=180,
+                env=os.environ.copy(),
+            )
+            if result.returncode != 0:
+                detail = (result.stderr or result.stdout or "Sync failed").strip()
+                raise RuntimeError(detail)
+
+            data = json.loads(INSTAGRAM_FILE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
+            self.send_response(400)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": False, "error": str(exc)}).encode())
+            return
+
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps({"ok": True, "data": data}).encode())
 
     def _upload_image(self, raw: bytes) -> None:
         content_type = self.headers.get("Content-Type", "")
