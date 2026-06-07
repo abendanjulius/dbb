@@ -100,7 +100,19 @@
   .badge.draft{border-color:var(--err);color:var(--err)}
 
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-  .empty{color:var(--mut);font-weight:300;padding:20px 0}
+  .empty{color:var(--mut);font-weight:300;padding:20px 0;line-height:1.6}
+
+  .post-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+  .post-tab{
+    background:transparent;border:none;border-bottom:2px solid transparent;color:var(--mut);
+    padding:10px 16px;font-family:'Outfit',sans-serif;font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;cursor:pointer;transition:.3s;margin-bottom:-1px
+  }
+  .post-tab:hover{color:var(--txt)}
+  .post-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .post-item.static{cursor:default}
+  .post-item.static:hover{border-color:var(--line);background:var(--black)}
+  .post-item .pi-slot{font-size:10px;letter-spacing:.16em;color:var(--gold-l);text-transform:uppercase;margin-bottom:4px}
 
   /* LOGIN */
   .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px;position:relative;z-index:1}
@@ -233,10 +245,16 @@
         </section>
 
         <section class="panel">
-          <h2>All Posts <span id="post-count" style="font-size:16px;color:var(--mut)"></span></h2>
+          <h2>Posts</h2>
           <div class="toolbar">
             <button class="btn" id="new-btn" type="button">+ New Post</button>
           </div>
+          <div class="post-tabs" id="post-tabs">
+            <button class="post-tab active" type="button" data-tab="all">All Posts <span id="tab-count-all"></span></button>
+            <button class="post-tab" type="button" data-tab="featured">Blog Featured <span id="tab-count-featured"></span></button>
+            <button class="post-tab" type="button" data-tab="home">Home Page <span id="tab-count-home"></span></button>
+          </div>
+          <p class="hint" id="tab-hint" style="margin-bottom:14px"></p>
           <div class="post-list" id="post-list"></div>
         </section>
       </div>
@@ -257,6 +275,7 @@
   let posts = [];
   let selectedWork = { items: [] };
   let editingId = null;
+  let activePostTab = 'all';
   let backendMode = 'offline'; // local | github | offline
   let pendingPreviewUrl = null;
 
@@ -662,28 +681,105 @@
     });
   }
 
-  function renderPostList() {
-    const sorted = [...posts].sort((a, b) => b.id - a.id);
-    document.getElementById('post-count').textContent = `(${sorted.length})`;
+  const TAB_HINTS = {
+    all: 'Every journal post — published and draft.',
+    featured: 'The post shown large at the top of the blog page. Only one at a time.',
+    home: 'Cards on the home page Selected Work section (max 4, newest first). Blog posts and original project cards.',
+  };
 
-    if (!sorted.length) {
-      postList.innerHTML = '<div class="empty">No posts yet. Create your first article.</div>';
-      return;
-    }
+  function updateTabCounts() {
+    const featuredCount = posts.filter(p => p.featured).length;
+    document.getElementById('tab-count-all').textContent = `(${posts.length})`;
+    document.getElementById('tab-count-featured').textContent = `(${featuredCount})`;
+    document.getElementById('tab-count-home').textContent = `(${selectedWork.items.length})`;
+  }
 
-    postList.innerHTML = sorted.map(post => `
+  function setActivePostTab(tab) {
+    activePostTab = tab;
+    document.querySelectorAll('.post-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.getElementById('tab-hint').textContent = TAB_HINTS[tab] || '';
+    renderPostList();
+  }
+
+  function renderPostItem(post) {
+    return `
       <div class="post-item${editingId === post.id ? ' active' : ''}" data-id="${post.id}">
         <div class="pi-title">${post.title}</div>
         <div class="pi-meta">${post.category} · ${formatDisplayDate(post.date)}</div>
         <div class="pi-badges">
-          ${post.featured ? '<span class="badge featured">Featured</span>' : ''}
-          ${post.homeSelected ? '<span class="badge home">Home</span>' : ''}
+          ${post.featured ? '<span class="badge featured">Blog Featured</span>' : ''}
+          ${post.homeSelected ? '<span class="badge home">Home Page</span>' : ''}
           ${post.published ? '<span class="badge">Published</span>' : '<span class="badge draft">Draft</span>'}
         </div>
       </div>
-    `).join('');
+    `;
+  }
 
-    postList.querySelectorAll('.post-item').forEach(el => {
+  function renderHomeQueueItem(entry) {
+    if (entry.type === 'post') {
+      const post = entry.post;
+      return `
+        <div class="post-item${editingId === post.id ? ' active' : ''}" data-id="${post.id}">
+          <div class="pi-slot">Home slot ${entry.slot}</div>
+          <div class="pi-title">${post.title}</div>
+          <div class="pi-meta">${post.category} · ${formatDisplayDate(post.date)}</div>
+          <div class="pi-badges">
+            <span class="badge home">From blog</span>
+            ${post.published ? '<span class="badge">Published</span>' : '<span class="badge draft">Draft</span>'}
+          </div>
+        </div>
+      `;
+    }
+
+    const item = entry.item;
+    return `
+      <div class="post-item static">
+        <div class="pi-slot">Home slot ${entry.slot}</div>
+        <div class="pi-title">${item.brand || item.title}</div>
+        <div class="pi-meta">${item.tag || 'Project card'}</div>
+        <div class="pi-badges">
+          <span class="badge home">Project card</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPostList() {
+    updateTabCounts();
+
+    if (activePostTab === 'featured') {
+      const featuredPosts = [...posts].filter(p => p.featured).sort((a, b) => b.id - a.id);
+      if (!featuredPosts.length) {
+        postList.innerHTML = '<div class="empty">No blog featured post yet. Tick “Featured post” on a post to show it large at the top of the blog.</div>';
+        return;
+      }
+      postList.innerHTML = featuredPosts.map(renderPostItem).join('');
+    } else if (activePostTab === 'home') {
+      const queue = selectedWork.items.slice(0, 4).map((item, index) => {
+        if (item.blogId != null) {
+          const post = posts.find(p => p.id === item.blogId);
+          return post ? { type: 'post', post, slot: index + 1 } : null;
+        }
+        return { type: 'static', item, slot: index + 1 };
+      }).filter(Boolean);
+
+      if (!queue.length) {
+        postList.innerHTML = '<div class="empty">No home page cards yet. Tick “Show on home page” on a blog post, or cards are seeded from selected-work.json.</div>';
+        return;
+      }
+      postList.innerHTML = queue.map(renderHomeQueueItem).join('');
+    } else {
+      const sorted = [...posts].sort((a, b) => b.id - a.id);
+      if (!sorted.length) {
+        postList.innerHTML = '<div class="empty">No posts yet. Create your first article.</div>';
+        return;
+      }
+      postList.innerHTML = sorted.map(renderPostItem).join('');
+    }
+
+    postList.querySelectorAll('.post-item:not(.static)').forEach(el => {
       el.addEventListener('click', () => {
         const post = posts.find(p => p.id === Number(el.dataset.id));
         if (post) fillForm(post);
@@ -711,7 +807,7 @@
 
     syncHomeSelectedFlags();
     updateCategories();
-    renderPostList();
+    setActivePostTab(activePostTab);
   }
 
   function getPayload() {
@@ -869,6 +965,12 @@
     showStatus('GitHub disconnected.');
   });
 
+  document.getElementById('post-tabs').addEventListener('click', (e) => {
+    const tab = e.target.closest('.post-tab');
+    if (!tab) return;
+    setActivePostTab(tab.dataset.tab);
+  });
+
   document.getElementById('reset-btn').addEventListener('click', resetForm);
   document.getElementById('new-btn').addEventListener('click', resetForm);
 
@@ -949,6 +1051,7 @@
       document.getElementById('github-token').placeholder = 'Token saved in this tab (paste new to replace)';
     }
     await checkBackend();
+    activePostTab = 'all';
     loadPosts();
   }
 
