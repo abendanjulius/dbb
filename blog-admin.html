@@ -44,6 +44,18 @@
   .status.ok{border-color:rgba(111,191,138,.4);color:var(--ok)}
   .status.err{border-color:rgba(216,107,107,.4);color:var(--err)}
 
+  .server-banner{display:none;margin-bottom:20px;padding:14px 18px;border:1px solid rgba(216,107,107,.45);background:rgba(216,107,107,.08);color:#e8b4b4;font-size:14px;line-height:1.6}
+  .server-banner.ok{border-color:rgba(111,191,138,.4);background:rgba(111,191,138,.08);color:var(--ok)}
+  .server-banner.show{display:block}
+  .server-banner code{color:var(--gold-l)}
+
+  .github-setup{display:none;margin-bottom:20px;padding:18px;border:1px solid var(--line);background:var(--black3)}
+  .github-setup.show{display:block}
+  .github-setup h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);margin-bottom:8px}
+  .github-setup p{color:var(--mut);font-size:14px;line-height:1.6;margin-bottom:14px}
+  .github-setup .row{display:flex;gap:10px;flex-wrap:wrap}
+  .github-setup .row input{flex:1;min-width:220px}
+
   .layout{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start}
   @media(max-width:980px){.layout{grid-template-columns:1fr}}
 
@@ -132,9 +144,19 @@
       <div class="hero">
         <div class="em">Content Management</div>
         <h1>Manage journal posts</h1>
-        <p>Add, edit, and publish articles. When running locally with <code>python3 blog-server.py</code>, Save writes directly to blog.json. Otherwise, download the JSON and replace the file on your server.</p>
+        <p>Add, edit, and publish articles. Works locally or on GitHub Pages — connect your GitHub token below to save directly to your repo.</p>
       </div>
 
+      <div class="server-banner" id="server-banner"></div>
+      <div class="github-setup" id="github-setup">
+        <h3>Connect GitHub</h3>
+        <p>Required on GitHub Pages to upload images and save <code>blog.json</code>. Create a <a href="https://github.com/settings/tokens/new?scopes=repo&description=DBB%20Blog%20Admin" target="_blank" rel="noopener" style="color:var(--gold)">classic token with <strong>repo</strong> access</a>, paste it here, then click Connect. Stored only in this browser tab.</p>
+        <div class="row">
+          <input id="github-token" type="password" placeholder="ghp_..." autocomplete="off">
+          <button class="btn primary" id="github-connect-btn" type="button">Connect</button>
+          <button class="btn" id="github-disconnect-btn" type="button">Disconnect</button>
+        </div>
+      </div>
       <div class="status" id="status"></div>
 
       <div class="layout">
@@ -175,7 +197,7 @@
                 <span class="image-name" id="image-filename">No image selected</span>
                 <input type="file" id="image-file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
                 <input id="image" placeholder="images/your-image.jpg" readonly style="margin-top:10px">
-                <div class="hint">JPG, PNG, WebP, or GIF. Requires <code>python3 blog-server.py</code> to upload.</div>
+                <div class="hint">JPG, PNG, WebP, or GIF. Connect GitHub token to upload from anywhere.</div>
               </div>
             </div>
 
@@ -225,9 +247,15 @@
 <script>
   const ADMIN_PASSWORD = 'dbb2026';
   const AUTH_KEY = 'dbb_blog_admin_auth';
+  const GH_TOKEN_KEY = 'dbb_gh_token';
+  const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
+  const LOCAL_ADMIN_URL = 'http://127.0.0.1:8080/blog-admin.html';
+  const GITHUB = { owner: 'abendanjulius', repo: 'dbb', branch: 'main' };
 
   let posts = [];
   let editingId = null;
+  let backendMode = 'offline'; // local | github | offline
+  let pendingPreviewUrl = null;
 
   const loginScreen = document.getElementById('login-screen');
   const app = document.getElementById('app');
@@ -248,7 +276,200 @@
   function showStatus(message, type = 'ok') {
     statusEl.textContent = message;
     statusEl.className = 'status show ' + type;
-    setTimeout(() => statusEl.classList.remove('show'), 4000);
+    setTimeout(() => statusEl.classList.remove('show'), type === 'err' ? 8000 : 4000);
+  }
+
+  function formatFetchError(err) {
+    if (!err || !err.message) return 'Upload failed.';
+    if (err.message === 'Failed to fetch') {
+      return 'Cannot reach server. Connect a GitHub token below, or run python3 blog-server.py locally.';
+    }
+    return err.message;
+  }
+
+  function getGithubToken() {
+    return sessionStorage.getItem(GH_TOKEN_KEY) || '';
+  }
+
+  function setGithubToken(token) {
+    if (token) sessionStorage.setItem(GH_TOKEN_KEY, token);
+    else sessionStorage.removeItem(GH_TOKEN_KEY);
+  }
+
+  function setServerBanner(message, type = 'err') {
+    const banner = document.getElementById('server-banner');
+    banner.innerHTML = message;
+    banner.className = 'server-banner' + (message ? ' show' + (type === 'ok' ? ' ok' : '') : '');
+  }
+
+  function showGithubSetup(show) {
+    document.getElementById('github-setup').classList.toggle('show', show);
+  }
+
+  async function githubRequest(endpoint, options = {}) {
+    const token = getGithubToken();
+    if (!token) throw new Error('GitHub token required');
+
+    const res = await fetch('https://api.github.com' + endpoint, {
+      ...options,
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: 'Bearer ' + token,
+        'X-GitHub-Api-Version': '2022-11-28',
+        ...(options.headers || {}),
+      },
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.message || 'GitHub API error (' + res.status + ')');
+    }
+    return data;
+  }
+
+  async function githubPutFile(path, contentBase64, message) {
+    const api = '/repos/' + GITHUB.owner + '/' + GITHUB.repo + '/contents/' + path;
+    let sha;
+
+    try {
+      const meta = await githubRequest(api + '?ref=' + GITHUB.branch);
+      sha = meta.sha;
+    } catch (_) {}
+
+    return githubRequest(api, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        content: contentBase64,
+        branch: GITHUB.branch,
+        ...(sha ? { sha } : {}),
+      }),
+    });
+  }
+
+  function textToBase64(text) {
+    return btoa(unescape(encodeURIComponent(text)));
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = () => reject(new Error('Could not read image file'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function connectGithub() {
+    const input = document.getElementById('github-token');
+    let token = input.value.trim();
+    if (!token || token.includes('•')) token = getGithubToken();
+    if (!token) {
+      showStatus('Paste your GitHub token first.', 'err');
+      return;
+    }
+
+    setGithubToken(token);
+    try {
+      const user = await githubRequest('/user');
+      backendMode = 'github';
+      setServerBanner('Connected to GitHub as <code>' + user.login + '</code>. Saves publish to your repo (~1–2 min for site update).', 'ok');
+      showGithubSetup(false);
+      showStatus('GitHub connected.');
+    } catch (err) {
+      setGithubToken('');
+      backendMode = 'offline';
+      showStatus(err.message || 'GitHub connection failed.', 'err');
+      showGithubSetup(true);
+    }
+  }
+
+  async function checkBackend() {
+    if (LOCAL_HOSTS.has(location.hostname)) {
+      try {
+        const res = await fetch('/api/ping', { method: 'GET', cache: 'no-store' });
+        if (res.ok) {
+          backendMode = 'local';
+          setServerBanner('Using local server. Saves go directly to blog.json on your Mac.', 'ok');
+          showGithubSetup(false);
+          return true;
+        }
+      } catch (_) {}
+    }
+
+    const token = getGithubToken();
+    if (token) {
+      try {
+        const user = await githubRequest('/user');
+        backendMode = 'github';
+        setServerBanner('Publishing via GitHub as <code>' + user.login + '</code>. Site updates in ~1–2 minutes after Save.', 'ok');
+        showGithubSetup(false);
+        return true;
+      } catch (_) {
+        setGithubToken('');
+      }
+    }
+
+    backendMode = 'offline';
+    if (LOCAL_HOSTS.has(location.hostname)) {
+      setServerBanner('Local server offline. Start <code>python3 blog-server.py</code> or connect GitHub below.');
+    } else {
+      setServerBanner('On GitHub Pages — connect your GitHub token below to upload images and save posts.');
+    }
+    showGithubSetup(true);
+    return false;
+  }
+
+  async function uploadImage(file) {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowed.includes(file.type)) {
+      throw new Error('Use JPG, PNG, WebP, or GIF images.');
+    }
+
+    const ext = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' }[file.type];
+    const stem = slugify(file.name.replace(/\.[^.]+$/, '')) || 'upload';
+    const filename = Date.now() + '-' + stem + ext;
+    const path = 'images/' + filename;
+
+    if (backendMode === 'local') {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Upload failed');
+      return data.path;
+    }
+
+    if (backendMode === 'github') {
+      const b64 = await fileToBase64(file);
+      await githubPutFile(path, b64, 'Upload blog image: ' + file.name);
+      return path;
+    }
+
+    throw new Error('Connect GitHub or start local server to upload images.');
+  }
+
+  async function persistBlog(message) {
+    const payload = getPayload();
+    const jsonText = JSON.stringify(payload, null, 2) + '\n';
+
+    if (backendMode === 'local') {
+      const res = await fetch('/api/blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Local save failed');
+      return;
+    }
+
+    if (backendMode === 'github') {
+      await githubPutFile('blog.json', textToBase64(jsonText), message || 'Update blog posts');
+      return;
+    }
+
+    throw new Error('No save method available');
   }
 
   function nextId() {
@@ -281,6 +502,13 @@
     }
   }
 
+  function clearPendingPreview() {
+    if (pendingPreviewUrl) {
+      URL.revokeObjectURL(pendingPreviewUrl);
+      pendingPreviewUrl = null;
+    }
+  }
+
   function resetForm() {
     editingId = null;
     form.reset();
@@ -288,6 +516,7 @@
     document.getElementById('published').checked = true;
     document.getElementById('image').value = '';
     document.getElementById('image-file').value = '';
+    clearPendingPreview();
     setImageFilename();
     formTitle.textContent = 'New Post';
     deleteBtn.style.display = 'none';
@@ -364,29 +593,30 @@
   }
 
   async function savePosts() {
-    const payload = getPayload();
+    if (backendMode === 'offline') {
+      await checkBackend();
+    }
 
     try {
-      const res = await fetch('/api/blog', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
+      await persistBlog('Update blog posts');
+      if (backendMode === 'github') {
+        showStatus('Saved to GitHub. Live site updates in 1–2 minutes.');
+      } else {
         showStatus('Saved to blog.json successfully.');
-        return true;
       }
-    } catch (_) {}
-
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'blog.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    showStatus('Server not detected — blog.json downloaded. Replace the file in your DBB folder.', 'err');
-    return false;
+      return true;
+    } catch (err) {
+      const payload = getPayload();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'blog.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showStatus((err.message || 'Save failed') + ' — blog.json downloaded as backup.', 'err');
+      return false;
+    }
   }
 
   function ensureSingleFeatured(featuredId) {
@@ -452,36 +682,49 @@
     if (!file) return;
 
     const chooseBtn = document.getElementById('choose-image-btn');
-    const localUrl = URL.createObjectURL(file);
+    clearPendingPreview();
+    pendingPreviewUrl = URL.createObjectURL(file);
     setImageFilename(file.name);
-    updatePreview(localUrl);
+    updatePreview(pendingPreviewUrl);
+
+    if (backendMode === 'offline') {
+      await checkBackend();
+    }
+    if (backendMode === 'offline') {
+      setImageFilename(file.name + ' (preview only — connect GitHub or start local server)');
+      showStatus('Connect GitHub token below, or use local server at ' + LOCAL_ADMIN_URL, 'err');
+      return;
+    }
 
     chooseBtn.disabled = true;
     chooseBtn.textContent = 'Uploading...';
 
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        throw new Error(data.error || 'Upload failed');
-      }
-      document.getElementById('image').value = data.path;
-      setImageFilename(data.path);
+      const path = await uploadImage(file);
+      document.getElementById('image').value = path;
+      setImageFilename(path);
+      clearPendingPreview();
       updatePreview();
-      showStatus('Image uploaded: ' + data.path);
+      showStatus(backendMode === 'github'
+        ? 'Image uploaded to GitHub: ' + path + ' (live in ~1–2 min)'
+        : 'Image uploaded: ' + path);
     } catch (err) {
-      document.getElementById('image').value = '';
-      setImageFilename();
-      updatePreview();
-      showStatus(err.message || 'Upload failed. Start the server with python3 blog-server.py', 'err');
+      setImageFilename(file.name + ' (not uploaded)');
+      updatePreview(pendingPreviewUrl);
+      showStatus(formatFetchError(err), 'err');
     } finally {
-      URL.revokeObjectURL(localUrl);
       chooseBtn.disabled = false;
       chooseBtn.textContent = 'Choose Image';
     }
+  });
+
+  document.getElementById('github-connect-btn').addEventListener('click', connectGithub);
+  document.getElementById('github-disconnect-btn').addEventListener('click', () => {
+    setGithubToken('');
+    document.getElementById('github-token').value = '';
+    backendMode = 'offline';
+    checkBackend();
+    showStatus('GitHub disconnected.');
   });
 
   document.getElementById('reset-btn').addEventListener('click', resetForm);
@@ -538,7 +781,7 @@
       loginScreen.classList.add('hidden');
       app.classList.remove('hidden');
       document.getElementById('login-error').classList.remove('show');
-      loadPosts();
+      bootApp();
     } else {
       document.getElementById('login-error').classList.add('show');
     }
@@ -556,10 +799,18 @@
     document.getElementById('login-pass').value = '';
   });
 
-  if (sessionStorage.getItem(AUTH_KEY) === '1') {
+  async function bootApp() {
     loginScreen.classList.add('hidden');
     app.classList.remove('hidden');
+    if (getGithubToken()) {
+      document.getElementById('github-token').placeholder = 'Token saved in this tab (paste new to replace)';
+    }
+    await checkBackend();
     loadPosts();
+  }
+
+  if (sessionStorage.getItem(AUTH_KEY) === '1') {
+    bootApp();
   }
 </script>
 </body>
