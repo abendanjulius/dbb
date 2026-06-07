@@ -25,7 +25,10 @@ USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Version/17.0 Safari/537.36"
 )
-SHORTCODE_RE = re.compile(r"instagram\.com/(?:p|reel|tv)/([^/?#]+)")
+SHORTCODE_RE = re.compile(
+    r"instagram\.com/(?:[^/?#]+/)?(?:p|reel|tv)/([^/?#]+)",
+    re.IGNORECASE,
+)
 OG_TAG_RE = re.compile(
     r'<meta\s+property="og:(?P<key>image|title|description)"\s+content="(?P<value>.*?)"\s*/?>',
     re.IGNORECASE | re.DOTALL,

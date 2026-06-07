@@ -386,7 +386,7 @@
   const categorySelect = document.getElementById('category');
   const form = document.getElementById('post-form');
 
-  const IG_SHORTCODE_RE = /instagram\.com\/(?:p|reel|tv)\/([^/?#]+)/i;
+  const IG_POST_RE = /instagram\.com\/(?:[^/?#]+\/)?(?:p|reel|tv)\/([^/?#]+)/i;
 
   const DEFAULT_CATEGORIES = [
     'Retail',
@@ -656,24 +656,24 @@
       .replace(/"/g, '&quot;');
   }
 
-  function normalizeInstagramUrl(url) {
+  function parseInstagramUrl(url) {
     const trimmed = String(url || '').trim();
-    if (!trimmed) return '';
-    const match = trimmed.match(IG_SHORTCODE_RE);
-    if (!match) return trimmed;
+    const match = trimmed.match(IG_POST_RE);
+    if (!match) return null;
+    const matched = match[0];
     const shortcode = match[1];
-    if (/\/reel\//i.test(trimmed)) {
-      return `https://www.instagram.com/reel/${shortcode}/`;
-    }
-    if (/\/tv\//i.test(trimmed)) {
-      return `https://www.instagram.com/tv/${shortcode}/`;
-    }
-    return `https://www.instagram.com/p/${shortcode}/`;
+    const type = /\/reel\//i.test(matched) ? 'reel' : /\/tv\//i.test(matched) ? 'tv' : 'p';
+    return { shortcode, type };
+  }
+
+  function normalizeInstagramUrl(url) {
+    const parsed = parseInstagramUrl(url);
+    if (!parsed) return '';
+    return `https://www.instagram.com/${parsed.type}/${parsed.shortcode}/`;
   }
 
   function extractInstagramShortcode(url) {
-    const match = String(url || '').match(IG_SHORTCODE_RE);
-    return match ? match[1] : '';
+    return parseInstagramUrl(url)?.shortcode || '';
   }
 
   function showInstagramEditor() {
@@ -766,7 +766,7 @@
 
   async function addInstagramUrl(rawUrl) {
     const url = normalizeInstagramUrl(rawUrl);
-    if (!url || !IG_SHORTCODE_RE.test(url)) {
+    if (!url) {
       showStatus('Paste a valid Instagram post, reel, or TV URL.', 'err');
       return false;
     }
