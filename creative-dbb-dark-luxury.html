@@ -242,14 +242,14 @@
   }
   .ig-head .follow:hover{border-color:var(--gold)}
   .ig-scroll{
-    display:flex;gap:16px;overflow-x:auto;padding-bottom:10px;
+    display:flex;align-items:flex-start;gap:16px;overflow-x:auto;padding-bottom:10px;
     scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin;
     scrollbar-color:var(--gold) transparent
   }
   .ig-scroll::-webkit-scrollbar{height:6px}
   .ig-scroll::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
   .ig-card{
-    flex:0 0 clamp(168px, 22vw, 240px);aspect-ratio:4/5;border:1px solid var(--line);
+    flex:0 0 clamp(168px, 22vw, 240px);border:1px solid var(--line);
     overflow:hidden;scroll-snap-align:start;position:relative;background:#111;transition:border-color .3s
   }
   .ig-card:hover{border-color:var(--gold)}
@@ -543,6 +543,24 @@
     }
   }
 
+  function getInstagramAspectRatio(post) {
+    const width = Number(post.imageWidth);
+    const height = Number(post.imageHeight);
+    if (width > 0 && height > 0) return `${width} / ${height}`;
+    if ((post.url || '').includes('/reel/') || (post.url || '').includes('/tv/')) return '9 / 16';
+    return '4 / 5';
+  }
+
+  function getInstagramImageSize(post) {
+    const width = Number(post.imageWidth);
+    const height = Number(post.imageHeight);
+    if (width > 0 && height > 0) return { width, height };
+    if ((post.url || '').includes('/reel/') || (post.url || '').includes('/tv/')) {
+      return { width: 360, height: 640 };
+    }
+    return { width: 480, height: 600 };
+  }
+
   function renderCuratedInstagram(container, posts, profileUrl) {
     container.classList.remove('ig-embed-mode');
 
@@ -558,9 +576,11 @@
       const url = escapeHtml(post.url || profileUrl);
       const caption = escapeHtml(post.caption || '');
       const alt = caption || 'Instagram post';
+      const aspectRatio = getInstagramAspectRatio(post);
+      const size = getInstagramImageSize(post);
       return `
-        <a class="ig-card" href="${url}" target="_blank" rel="noopener" aria-label="${alt}">
-          <img src="${image}" alt="${alt}" loading="lazy" width="480" height="600">
+        <a class="ig-card" href="${url}" target="_blank" rel="noopener" aria-label="${alt}" style="aspect-ratio:${aspectRatio}">
+          <img src="${image}" alt="${alt}" loading="lazy" width="${size.width}" height="${size.height}">
           <span class="ig-ico">${igIcon}</span>
           ${caption ? `<span class="ig-cap">${caption}</span>` : ''}
         </a>

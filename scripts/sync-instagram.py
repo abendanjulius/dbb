@@ -160,11 +160,57 @@ def fetch_via_graph_api(url: str, token: str) -> dict[str, str]:
     return {"caption": caption, "thumbnail_url": thumbnail, "publishedAt": ""}
 
 
-def download_image(thumbnail_url: str, dest: Path) -> None:
+def image_dimensions(data: bytes) -> tuple[int, int] | None:
+    if data.startswith(b"\x89PNG\r\n\x1a\n") and len(data) >= 24:
+        width = int.from_bytes(data[16:20], "big")
+        height = int.from_bytes(data[20:24], "big")
+        return width, height
+
+    if data[:2] != b"\xff\xd8":
+        return None
+
+    index = 2
+    while index < len(data) - 9:
+        if data[index] != 0xFF:
+            index += 1
+            continue
+
+        marker = data[index + 1]
+        if marker in {
+            0xC0,
+            0xC1,
+            0xC2,
+            0xC3,
+            0xC5,
+            0xC6,
+            0xC7,
+            0xC9,
+            0xCA,
+            0xCB,
+            0xCD,
+            0xCE,
+            0xCF,
+        }:
+            height = int.from_bytes(data[index + 5 : index + 7], "big")
+            width = int.from_bytes(data[index + 7 : index + 9], "big")
+            return width, height
+
+        if marker in {0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9}:
+            index += 4
+            continue
+
+        segment_length = int.from_bytes(data[index + 2 : index + 4], "big")
+        index += 2 + segment_length
+
+    return None
+
+
+def download_image(thumbnail_url: str, dest: Path) -> tuple[int, int] | None:
     request = urllib.request.Request(thumbnail_url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(request, timeout=30) as response:
         data = response.read()
     dest.write_bytes(data)
+    return image_dimensions(data)
 
 
 def merge_post_entries(data: dict) -> list[dict]:
@@ -237,7 +283,7 @@ def sync_post(entry: dict, token: str | None) -> dict:
     IMAGES_DIR.mkdir(exist_ok=True)
     image_name = f"ig-{shortcode}.jpg"
     image_path = IMAGES_DIR / image_name
-    download_image(meta["thumbnail_url"], image_path)
+    dimensions = download_image(meta["thumbnail_url"], image_path)
 
     synced_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     updated = {
@@ -250,6 +296,11 @@ def sync_post(entry: dict, token: str | None) -> dict:
         "publishedAt": meta.get("publishedAt") or entry.get("publishedAt") or "",
         "syncedAt": synced_at,
     }
+    if dimensions:
+        updated["imageWidth"], updated["imageHeight"] = dimensions
+    elif entry.get("imageWidth") and entry.get("imageHeight"):
+        updated["imageWidth"] = entry["imageWidth"]
+        updated["imageHeight"] = entry["imageHeight"]
     if errors:
         updated["syncWarnings"] = errors
     return updated
