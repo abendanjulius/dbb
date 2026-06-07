@@ -258,11 +258,7 @@
   .menu a.active{color:var(--gold)}
   .menu a.active::after{width:100%}
 
-  /* BLOG HERO */
-  .blog-hero{min-height:58vh;display:flex;align-items:center;position:relative;overflow:hidden;padding-top:92px}
-  .blog-hero::before{content:"";position:absolute;width:700px;height:700px;border-radius:50%;
-    background:radial-gradient(circle,rgba(224,169,60,.14),transparent 62%);left:50%;top:48%;transform:translate(-50%,-50%)}
-  .blog-hero .hero-c{padding:40px 0 20px}
+  #articles{padding-top:130px}
 
   /* FEATURED POST */
   .feat-post{display:grid;grid-template-columns:1.15fr 1fr;gap:60px;align-items:center;margin-bottom:90px;border:1px solid var(--line);background:var(--black2)}
@@ -306,7 +302,7 @@
   }
   @media(max-width:640px){
     .blog-grid{grid-template-columns:1fr}
-    .blog-hero{min-height:48vh}
+    #articles{padding-top:110px}
   }
 
 </style>
@@ -324,18 +320,6 @@
     <li><a href="creative-dbb-dark-luxury.html#contact">Contact</a></li>
   </ul>
 </div></nav>
-
-<header class="blog-hero">
-  <div class="glow-circle"></div>
-  <div class="wrap"><div class="hero-c">
-    <div class="pre">Journal</div>
-    <h1>
-      <span class="l">Insights on</span>
-      <span class="l"><em>luxury execution</em></span>
-    </h1>
-    <p class="sub">Perspectives on design-build, project delivery, and the craft behind exceptional spaces across the GCC.</p>
-  </div></div>
-</header>
 
 <section id="articles"><div class="wrap">
   <div class="sh rv">
