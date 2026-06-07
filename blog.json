@@ -54,7 +54,7 @@
       "readTime": "7 min read",
       "featured": false,
       "published": true,
-      "homeSelected": false
+      "homeSelected": true
     },
     {
       "id": 3,
@@ -110,7 +110,7 @@
       "content": "asdsadasdsadsad",
       "featured": true,
       "published": true,
-      "homeSelected": true
+      "homeSelected": false
     }
   ]
 }
