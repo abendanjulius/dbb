@@ -974,6 +974,13 @@
     renderPostList();
   }
 
+  function syncFeaturedCheckbox() {
+    const featured = getFeaturedPost();
+    const checkbox = document.getElementById('featured');
+    if (!editingId) return;
+    checkbox.checked = !!(featured && featured.id === editingId);
+  }
+
   function applyFeaturedReplacement() {
     const select = document.getElementById('featured-replace-select');
     const postId = Number(select.value);
@@ -982,7 +989,8 @@
       return;
     }
 
-    ensureSingleFeatured(postId);
+    setFeaturedPost(postId);
+    syncFeaturedCheckbox();
     showFeaturedEditor();
     showStatus('Blog featured post updated. Click "Save Changes" to persist.');
   }
@@ -991,6 +999,7 @@
     posts.forEach(post => {
       post.featured = false;
     });
+    syncFeaturedCheckbox();
     hideFeaturedEditor();
     renderPostList();
     showStatus('Featured post removed. Click "Save Changes" to persist.');
@@ -1233,11 +1242,15 @@
     }
   }
 
-  function ensureSingleFeatured(featuredId) {
+  function setFeaturedPost(featuredId) {
     if (!featuredId) return;
-    posts.forEach(p => {
-      if (p.id !== featuredId) p.featured = false;
+    posts.forEach(post => {
+      post.featured = post.id === featuredId;
     });
+  }
+
+  function ensureSingleFeatured(featuredId) {
+    setFeaturedPost(featuredId);
   }
 
   form.addEventListener('submit', (e) => {
@@ -1268,7 +1281,8 @@
       const idx = posts.findIndex(p => p.id === editingId);
       const wasHomeSelected = idx !== -1 && !!posts[idx].homeSelected;
       if (idx !== -1) posts[idx] = { ...posts[idx], ...postData };
-      if (featured) ensureSingleFeatured(editingId);
+      if (featured) setFeaturedPost(editingId);
+      else if (getFeaturedPost()?.id === editingId) posts[idx].featured = false;
       if (homeSelected) {
         if (wasHomeSelected) updateSelectedWorkItem(posts[idx]);
         else addToSelectedWork(posts[idx]);
@@ -1280,7 +1294,7 @@
       const id = nextId();
       const newPost = { id, ...postData };
       posts.push(newPost);
-      if (featured) ensureSingleFeatured(id);
+      if (featured) setFeaturedPost(id);
       if (homeSelected) addToSelectedWork(newPost);
       editingId = id;
       document.getElementById('post-id').value = id;
