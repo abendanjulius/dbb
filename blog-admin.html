@@ -268,7 +268,7 @@
           <p class="hint" id="tab-hint" style="margin-bottom:14px"></p>
           <div class="slot-editor-panel hidden" id="instagram-editor">
             <h3>From the studio</h3>
-            <p class="slot-current">Curate the home page Instagram feed for <strong>@creativedbb</strong>. Paste a post or reel URL — posts are auto-sorted by publish date (newest first) and thumbnails sync within a minute or two.</p>
+            <p class="slot-current">Curate the home page Instagram feed for <strong>@creativedbb</strong>. Paste a post or reel URL — it publishes automatically. No need to click <strong>Save Changes</strong>.</p>
             <div class="field">
               <label for="ig-url-input">Instagram post URL</label>
               <input id="ig-url-input" type="url" placeholder="https://www.instagram.com/reel/..." autocomplete="off">
@@ -1148,7 +1148,7 @@
     all: 'Every journal post — published and draft.',
     featured: 'Click the featured slot to replace it. One post is shown large at the top of the blog.',
     home: 'Click a slot to replace it or change order. Slot 1 appears first on the home page (max 4).',
-    instagram: 'Posts are sorted by Instagram publish date (newest first, max 12). Adding a post syncs its thumbnail automatically.',
+    instagram: 'Posts are sorted by publish date (newest first, max 12). Add a URL and it publishes — no Save Changes needed.',
   };
 
   function getFeaturedPost() {
@@ -1251,6 +1251,14 @@
     document.getElementById('tab-count-instagram').textContent = `(${(instagramData.posts || []).length})`;
   }
 
+  function updateTopActionsForTab(tab) {
+    const saveBtn = document.getElementById('save-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const onInstagram = tab === 'instagram';
+    saveBtn.classList.toggle('hidden', onInstagram);
+    downloadBtn.classList.toggle('hidden', onInstagram);
+  }
+
   function setActivePostTab(tab) {
     activePostTab = tab;
     if (tab !== 'home') hideSlotEditor();
@@ -1261,6 +1269,7 @@
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
     document.getElementById('tab-hint').textContent = TAB_HINTS[tab] || '';
+    updateTopActionsForTab(tab);
     renderPostList();
   }
 
@@ -1492,47 +1501,31 @@
   }
 
   async function savePosts() {
+    if (activePostTab === 'instagram') {
+      showStatus('Instagram posts publish automatically when you add them.', 'err');
+      return false;
+    }
+
     if (backendMode === 'offline') {
       await checkBackend();
+    }
+
+    if (backendMode === 'offline') {
+      showStatus('Connect GitHub above to save blog posts, or use Download JSON for a local backup.', 'err');
+      return false;
     }
 
     try {
       await persistBlog('Update blog posts');
       await persistSelectedWork('Update home selected work');
-      await persistInstagram('Update Instagram feed');
       if (backendMode === 'github') {
         showStatus('Saved to GitHub. Live site updates in 1–2 minutes.');
       } else {
-        showStatus('Saved to blog.json, selected-work.json, and instagram.json.');
+        showStatus('Saved to blog.json and selected-work.json.');
       }
       return true;
     } catch (err) {
-      const payload = getPayload();
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'blog.json';
-      a.click();
-      URL.revokeObjectURL(url);
-
-      const swBlob = new Blob([JSON.stringify(selectedWork, null, 2)], { type: 'application/json' });
-      const swUrl = URL.createObjectURL(swBlob);
-      const swA = document.createElement('a');
-      swA.href = swUrl;
-      swA.download = 'selected-work.json';
-      swA.click();
-      URL.revokeObjectURL(swUrl);
-
-      const igBlob = new Blob([JSON.stringify(instagramData, null, 2)], { type: 'application/json' });
-      const igUrl = URL.createObjectURL(igBlob);
-      const igA = document.createElement('a');
-      igA.href = igUrl;
-      igA.download = 'instagram.json';
-      igA.click();
-      URL.revokeObjectURL(igUrl);
-
-      showStatus((err.message || 'Save failed') + ' — JSON files downloaded as backup.', 'err');
+      showStatus((err.message || 'Save failed') + ' Use Download JSON if you need a local backup.', 'err');
       return false;
     }
   }
