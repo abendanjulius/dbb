@@ -249,7 +249,7 @@
   .ig-scroll::-webkit-scrollbar{height:6px}
   .ig-scroll::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
   .ig-card{
-    flex:0 0 clamp(180px, 28vw, 260px);aspect-ratio:1;border:1px solid var(--line);
+    flex:0 0 clamp(168px, 22vw, 240px);aspect-ratio:4/5;border:1px solid var(--line);
     overflow:hidden;scroll-snap-align:start;position:relative;background:#111;transition:border-color .3s
   }
   .ig-card:hover{border-color:var(--gold)}
@@ -560,7 +560,7 @@
       const alt = caption || 'Instagram post';
       return `
         <a class="ig-card" href="${url}" target="_blank" rel="noopener" aria-label="${alt}">
-          <img src="${image}" alt="${alt}" loading="lazy" width="520" height="520">
+          <img src="${image}" alt="${alt}" loading="lazy" width="480" height="600">
           <span class="ig-ico">${igIcon}</span>
           ${caption ? `<span class="ig-cap">${caption}</span>` : ''}
         </a>
