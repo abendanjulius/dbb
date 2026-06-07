@@ -1,0 +1,44 @@
+{
+  "items": [
+    {
+      "blogId": null,
+      "brand": "Clive Christian",
+      "title": "Flagship Perfumery Boutique",
+      "description": "Full turnkey fit-out for the iconic British perfumery brand at Dubai Mall, featuring bespoke joinery and refined detailing.",
+      "tag": "Retail · Dubai Mall",
+      "image": "images/clivechristian.jpg",
+      "imageWebp": "images/clivev2.webp",
+      "link": ""
+    },
+    {
+      "blogId": null,
+      "brand": "Caron Paris",
+      "title": "Heritage Perfumery Boutique",
+      "description": "Elegant turnkey boutique for the historic French fragrance house, balancing classic craftsmanship with modern retail experience.",
+      "tag": "Retail · Dubai Mall",
+      "image": "images/caron.jpg",
+      "imageWebp": "images/caron.webp",
+      "link": ""
+    },
+    {
+      "blogId": null,
+      "brand": "L'Odore",
+      "title": "Niche Perfumery Boutique",
+      "description": "L'Odore is a luxury niche perfume boutique and fragrance brand known for curating artisanal, high-end scents tailored to refined Eastern and Middle Eastern tastes. Displayed like an art gallery, their collections feature distinguished niche fragrance brands.",
+      "tag": "Retail · Riyadh",
+      "image": "images/lodore.jpg",
+      "imageWebp": "images/lodore.webp",
+      "link": ""
+    },
+    {
+      "blogId": null,
+      "brand": "ShrimpPot",
+      "title": "Multi-Location F&B Rollout",
+      "description": "Complete design and execution across multiple locations for this popular seafood concept, delivered on time and on brand.",
+      "tag": "F&B · Abu Dhabi",
+      "image": "images/shrimppot.jpg",
+      "imageWebp": "images/shrimppot.webp",
+      "link": ""
+    }
+  ]
+}

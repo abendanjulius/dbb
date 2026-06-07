@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 BLOG_FILE = ROOT / "blog.json"
+SELECTED_WORK_FILE = ROOT / "selected-work.json"
 IMAGES_DIR = ROOT / "images"
 PORT = 8080
 ALLOWED_IMAGE_TYPES = {
@@ -44,6 +45,10 @@ class BlogHandler(SimpleHTTPRequestHandler):
             self._save_blog(raw)
             return
 
+        if self.path == "/api/selected-work":
+            self._save_selected_work(raw)
+            return
+
         if self.path == "/api/upload":
             self._upload_image(raw)
             return
@@ -56,6 +61,27 @@ class BlogHandler(SimpleHTTPRequestHandler):
             if "posts" not in payload or not isinstance(payload["posts"], list):
                 raise ValueError("Invalid blog data: missing posts array")
             BLOG_FILE.write_text(
+                json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+        except (json.JSONDecodeError, ValueError) as exc:
+            self.send_response(400)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": False, "error": str(exc)}).encode())
+            return
+
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(b'{"ok":true}')
+
+    def _save_selected_work(self, raw: bytes) -> None:
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+            if "items" not in payload or not isinstance(payload["items"], list):
+                raise ValueError("Invalid selected work data: missing items array")
+            SELECTED_WORK_FILE.write_text(
                 json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )

@@ -308,64 +308,8 @@
     <div class="divider"></div>
   </div>
 
-  <div class="sc-item">
-    <div class="sc-visual v1 rv">
-      <picture>
-        <source srcset="images/clivev2.webp" type="image/webp">
-        <img src="images/clivechristian.jpg" alt="Clive Christian Perfumery Boutique at Dubai Mall" width="1200" height="800" loading="lazy">
-      </picture>
-      <span class="vt">Retail · Dubai Mall</span>
-    </div>
-    <div class="sc-text rv">
-      <div class="pn">Clive Christian</div>
-      <h3>Flagship Perfumery Boutique</h3>
-      <p>Full turnkey fit-out for the iconic British perfumery brand at Dubai Mall, featuring bespoke joinery and refined detailing.</p>
-    </div>
-  </div>
-  <div class="sc-item">
-    <div class="sc-visual v2 rv">
-      <picture>
-        <source srcset="images/caron.webp" type="image/webp">
-        <img src="images/caron.jpg" alt="Caron Paris Heritage Perfumery Boutique" width="1200" height="800" loading="lazy">
-      </picture>
-      <span class="vt">Retail · Dubai Mall</span>
-    </div>
-    <div class="sc-text rv">
-      <div class="pn">Caron Paris</div>
-      <h3>Heritage Perfumery Boutique</h3>
-      <p>Elegant turnkey boutique for the historic French fragrance house, balancing classic craftsmanship with modern retail experience.</p>
-    </div>
-  </div>
-
-  <!-- L'Odore Project -->
-  <div class="sc-item">
-    <div class="sc-visual v4 rv">
-      <picture>
-        <source srcset="images/lodore.webp" type="image/webp">
-        <img src="images/lodore.jpg" alt="L'Odore Perfumery Boutique" width="1200" height="800" loading="lazy">
-      </picture>
-      <span class="vt">Retail · Riyadh</span>
-    </div>
-    <div class="sc-text rv">
-      <div class="pn">L'Odore</div>
-      <h3>Niche Perfumery Boutique</h3>
-      <p>L'Odore is a luxury niche perfume boutique and fragrance brand known for curating artisanal, high-end scents tailored to refined Eastern and Middle Eastern tastes. Displayed like an art gallery, their collections feature distinguished niche fragrance brands.</p>
-    </div>
-  </div>
-
-  <div class="sc-item">
-    <div class="sc-visual v3 rv">
-      <picture>
-        <source srcset="images/shrimppot.webp" type="image/webp">
-        <img src="images/shrimppot.jpg" alt="ShrimpPot Multi-Location F&amp;B Interior" width="1200" height="793" loading="lazy">
-      </picture>
-      <span class="vt">F&amp;B · Abu Dhabi</span>
-    </div>
-    <div class="sc-text rv">
-      <div class="pn">ShrimpPot</div>
-      <h3>Multi-Location F&amp;B Rollout</h3>
-      <p>Complete design and execution across multiple locations for this popular seafood concept, delivered on time and on brand.</p>
-    </div>
+  <div id="selected-work-items">
+    <!-- Loaded from selected-work.json (max 4 cards, managed in blog admin) -->
   </div>
 </div></section>
 
@@ -490,55 +434,70 @@
     }
   }
 
-  // Load featured projects on page load
-  loadFeaturedProjects();
+  function observeRevealElements(root = document) {
+    root.querySelectorAll('.rv:not(.in)').forEach((el, i) => {
+      el.style.transitionDelay = (i % 3 * 0.1) + 's';
+      io.observe(el);
+    });
+  }
 
-  // Load main "Selected Work" featured projects (big cards)
-  async function loadMainFeaturedProjects() {
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  }
+
+  async function loadSelectedWork() {
+    const container = document.getElementById('selected-work-items');
+    if (!container) return;
+
     try {
-      const res = await fetch('projects.json');
-      let allProjects = await res.json();
+      const res = await fetch('selected-work.json?v=' + Date.now(), { cache: 'no-store' });
+      const data = await res.json();
+      const items = Array.isArray(data.items) ? data.items.slice(0, 4) : [];
 
-      allProjects.sort((a, b) => b.id - a.id);
-      const latest = allProjects.slice(0, 4);
+      container.innerHTML = items.map((item, idx) => {
+        const alt = escapeHtml(item.title || item.brand || 'Selected work');
+        const brand = escapeHtml(item.brand || '');
+        const title = escapeHtml(item.title || '');
+        const description = escapeHtml(item.description || '');
+        const tag = escapeHtml(item.tag || 'Project');
+        const image = item.image || '';
+        const imageWebp = item.imageWebp || (image.endsWith('.webp') ? image : '');
+        const link = item.link ? escapeHtml(item.link) : '';
 
-      const container = document.getElementById('main-featured-projects');
-      if (!container) return;
+        const picture = imageWebp && imageWebp !== image
+          ? `<picture><source srcset="${imageWebp}" type="image/webp"><img src="${image}" alt="${alt}" width="1200" height="800" loading="lazy"></picture>`
+          : `<img src="${image}" alt="${alt}" width="1200" height="800" loading="lazy">`;
 
-      container.innerHTML = '';
+        const linkHtml = link
+          ? `<a href="${link}">Read on the journal</a>`
+          : '';
 
-      latest.forEach((project, idx) => {
-        const item = document.createElement('div');
-        item.className = 'sc-item';
-
-        // Force alternating layout (image left vs right) like the original
-        const visualStyle = (idx % 2 === 0) ? '' : 'style="order: 2;"';
-
-        item.innerHTML = `
-          <div class="sc-visual rv" ${visualStyle}>
-            <picture>
-              <source srcset="${project.image}" type="image/webp">
-              <img src="${project.image}" alt="${project.name}" width="1200" height="800" loading="lazy">
-            </picture>
-            <span class="vt">${project.tag || 'Project'}</span>
-          </div>
-          <div class="sc-text rv">
-            <div class="pn">${project.name}</div>
-            <h3>${project.name}</h3>
-            <p>${project.description || ''}</p>
+        return `
+          <div class="sc-item">
+            <div class="sc-visual v${(idx % 4) + 1} rv">
+              ${picture}
+              <span class="vt">${tag}</span>
+            </div>
+            <div class="sc-text rv">
+              <div class="pn">${brand}</div>
+              <h3>${title}</h3>
+              <p>${description}</p>
+              ${linkHtml}
+            </div>
           </div>
         `;
-        container.appendChild(item);
-      });
+      }).join('');
+
+      observeRevealElements(container);
     } catch (err) {
-      console.error('Failed to load main featured projects:', err);
+      console.error('Failed to load selected work:', err);
     }
   }
 
-  // Main featured projects section reverted to original hardcoded version for now.
-
-  // Touch handling for Projects Carousel (pause on touch, resume on release)
-  // (Also initialized inside loadFeaturedProjects for dynamic content)
+  loadFeaturedProjects();
+  loadSelectedWork();
 </script>
 </body>
 </html>

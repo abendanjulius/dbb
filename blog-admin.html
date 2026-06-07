@@ -93,6 +93,7 @@
   .post-item .pi-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
   .badge{font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:4px 8px;border:1px solid var(--line);color:var(--mut)}
   .badge.featured{border-color:var(--gold);color:var(--gold)}
+  .badge.home{border-color:var(--gold-l);color:var(--gold-l)}
   .badge.draft{border-color:var(--err);color:var(--err)}
 
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
@@ -222,6 +223,14 @@
               </div>
             </div>
 
+            <div class="field" style="margin-top:4px">
+              <div class="check">
+                <input type="checkbox" id="homeSelected">
+                <label for="homeSelected">Show on home page — Selected Work (large cards)</label>
+              </div>
+              <div class="hint">Becomes the newest card (slot 1). The oldest of the four is removed — e.g. ShrimpPot drops off when you add a fifth.</div>
+            </div>
+
             <div class="form-actions">
               <button class="btn primary" type="submit">Save Post</button>
               <button class="btn" type="button" id="reset-btn">Clear Form</button>
@@ -253,6 +262,7 @@
   const GITHUB = { owner: 'abendanjulius', repo: 'dbb', branch: 'main' };
 
   let posts = [];
+  let selectedWork = { items: [] };
   let editingId = null;
   let backendMode = 'offline'; // local | github | offline
   let pendingPreviewUrl = null;
@@ -472,6 +482,70 @@
     throw new Error('No save method available');
   }
 
+  async function persistSelectedWork(message) {
+    const jsonText = JSON.stringify(selectedWork, null, 2) + '\n';
+
+    if (backendMode === 'local') {
+      const res = await fetch('/api/selected-work', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: jsonText,
+      });
+      if (!res.ok) throw new Error('Local selected-work save failed');
+      return;
+    }
+
+    if (backendMode === 'github') {
+      await githubPutFile('selected-work.json', textToBase64(jsonText), message || 'Update home selected work');
+      return;
+    }
+
+    throw new Error('No save method available');
+  }
+
+  function postToSelectedWorkItem(post) {
+    const image = post.image || '';
+    const imageWebp = image.endsWith('.webp') ? image : '';
+    return {
+      blogId: post.id,
+      brand: post.category || 'Journal',
+      title: post.title,
+      description: post.excerpt || '',
+      tag: (post.category || 'Journal') + ' · Journal',
+      image,
+      imageWebp,
+      link: 'blog.html',
+    };
+  }
+
+  function syncHomeSelectedFlags() {
+    const ids = new Set(
+      selectedWork.items.filter(item => item.blogId != null).map(item => item.blogId)
+    );
+    posts.forEach(post => {
+      post.homeSelected = ids.has(post.id);
+    });
+  }
+
+  function addToSelectedWork(post) {
+    selectedWork.items = selectedWork.items.filter(item => item.blogId !== post.id);
+    selectedWork.items.unshift(postToSelectedWorkItem(post));
+    selectedWork.items = selectedWork.items.slice(0, 4);
+    syncHomeSelectedFlags();
+  }
+
+  function removeFromSelectedWork(postId) {
+    selectedWork.items = selectedWork.items.filter(item => item.blogId !== postId);
+    syncHomeSelectedFlags();
+  }
+
+  function updateSelectedWorkItem(post) {
+    const idx = selectedWork.items.findIndex(item => item.blogId === post.id);
+    if (idx !== -1) {
+      selectedWork.items[idx] = postToSelectedWorkItem(post);
+    }
+  }
+
   function nextId() {
     return posts.length ? Math.max(...posts.map(p => p.id)) + 1 : 1;
   }
@@ -538,6 +612,7 @@
     document.getElementById('content').value = post.content || '';
     document.getElementById('featured').checked = !!post.featured;
     document.getElementById('published').checked = !!post.published;
+    document.getElementById('homeSelected').checked = !!post.homeSelected;
     formTitle.textContent = 'Edit Post';
     deleteBtn.style.display = 'inline-block';
     updatePreview();
@@ -561,6 +636,7 @@
         <div class="pi-meta">${post.category} · ${post.date}</div>
         <div class="pi-badges">
           ${post.featured ? '<span class="badge featured">Featured</span>' : ''}
+          ${post.homeSelected ? '<span class="badge home">Home</span>' : ''}
           ${post.published ? '<span class="badge">Published</span>' : '<span class="badge draft">Draft</span>'}
         </div>
       </div>
@@ -579,13 +655,22 @@
       const res = await fetch('blog.json?' + Date.now());
       const data = await res.json();
       posts = Array.isArray(data.posts) ? data.posts : [];
-      updateCategories();
-      renderPostList();
     } catch (err) {
       posts = [];
       showStatus('Could not load blog.json. You can still create posts and download the file.', 'err');
-      renderPostList();
     }
+
+    try {
+      const res = await fetch('selected-work.json?' + Date.now());
+      const data = await res.json();
+      selectedWork = { items: Array.isArray(data.items) ? data.items.slice(0, 4) : [] };
+    } catch (_) {
+      selectedWork = { items: [] };
+    }
+
+    syncHomeSelectedFlags();
+    updateCategories();
+    renderPostList();
   }
 
   function getPayload() {
@@ -599,10 +684,11 @@
 
     try {
       await persistBlog('Update blog posts');
+      await persistSelectedWork('Update home selected work');
       if (backendMode === 'github') {
         showStatus('Saved to GitHub. Live site updates in 1–2 minutes.');
       } else {
-        showStatus('Saved to blog.json successfully.');
+        showStatus('Saved to blog.json and selected-work.json.');
       }
       return true;
     } catch (err) {
@@ -614,7 +700,16 @@
       a.download = 'blog.json';
       a.click();
       URL.revokeObjectURL(url);
-      showStatus((err.message || 'Save failed') + ' — blog.json downloaded as backup.', 'err');
+
+      const swBlob = new Blob([JSON.stringify(selectedWork, null, 2)], { type: 'application/json' });
+      const swUrl = URL.createObjectURL(swBlob);
+      const swA = document.createElement('a');
+      swA.href = swUrl;
+      swA.download = 'selected-work.json';
+      swA.click();
+      URL.revokeObjectURL(swUrl);
+
+      showStatus((err.message || 'Save failed') + ' — JSON files downloaded as backup.', 'err');
       return false;
     }
   }
@@ -638,6 +733,7 @@
     const content = document.getElementById('content').value.trim();
     const featured = document.getElementById('featured').checked;
     const published = document.getElementById('published').checked;
+    const homeSelected = document.getElementById('homeSelected').checked;
 
     const postData = {
       title,
@@ -650,18 +746,27 @@
       content,
       featured,
       published,
+      homeSelected,
     };
 
     if (editingId) {
       const idx = posts.findIndex(p => p.id === editingId);
+      const wasHomeSelected = idx !== -1 && !!posts[idx].homeSelected;
       if (idx !== -1) posts[idx] = { ...posts[idx], ...postData };
       if (featured) ensureSingleFeatured(editingId);
+      if (homeSelected) {
+        if (wasHomeSelected) updateSelectedWorkItem(posts[idx]);
+        else addToSelectedWork(posts[idx]);
+      } else {
+        removeFromSelectedWork(editingId);
+      }
       showStatus('Post updated. Click "Save Changes" to persist.');
     } else {
       const id = nextId();
       const newPost = { id, ...postData };
       posts.push(newPost);
       if (featured) ensureSingleFeatured(id);
+      if (homeSelected) addToSelectedWork(newPost);
       editingId = id;
       document.getElementById('post-id').value = id;
       formTitle.textContent = 'Edit Post';
@@ -733,6 +838,7 @@
   deleteBtn.addEventListener('click', () => {
     if (!editingId) return;
     if (!confirm('Delete this post?')) return;
+    removeFromSelectedWork(editingId);
     posts = posts.filter(p => p.id !== editingId);
     resetForm();
     updateCategories();
