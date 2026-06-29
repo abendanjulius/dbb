@@ -12,7 +12,7 @@
       "readTime": "6 min read",
       "featured": false,
       "published": true,
-      "homeSelected": false
+      "homeSelected": true
     },
     {
       "id": 6,
@@ -108,7 +108,7 @@
       "excerpt": "THIS IS A TEST\n\nHSFHFIWOJLAJLLMLSM",
       "featured": true,
       "published": true,
-      "homeSelected": true
+      "homeSelected": false
     }
   ]
 }
