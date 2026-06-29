@@ -15,34 +15,6 @@
       "homeSelected": false
     },
     {
-      "id": 3,
-      "title": "International Standards in Regional Hospitality Fit-Outs",
-      "slug": "international-standards-in-regional-hospitality-fit-outs",
-      "category": "Hospitality",
-      "excerpt": "Bridging global hospitality benchmarks with local craftsmanship across the Middle East.",
-      "content": "",
-      "image": "images/clivev2.webp",
-      "date": "January 2026",
-      "readTime": "5 min read",
-      "featured": false,
-      "published": true,
-      "homeSelected": false
-    },
-    {
-      "id": 2,
-      "title": "From Concept to Completion: The Turnkey Advantage",
-      "slug": "from-concept-to-completion-the-turnkey-advantage",
-      "category": "Turnkey",
-      "excerpt": "A single accountable partner from design through procurement, execution, and handover.",
-      "content": "",
-      "image": "images/caron.webp",
-      "date": "December 2025",
-      "readTime": "6 min read",
-      "featured": false,
-      "published": true,
-      "homeSelected": false
-    },
-    {
       "id": 1,
       "title": "Refined Detailing in Private Villa Fit-Outs",
       "slug": "refined-detailing-in-private-villa-fit-outs",
