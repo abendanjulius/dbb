@@ -1,20 +1,6 @@
 {
   "posts": [
     {
-      "id": 6,
-      "title": "Timeline Guardianship: Delivering Complex Fit-Outs On Schedule",
-      "slug": "timeline-guardianship-delivering-complex-fit-outs-on-schedule",
-      "category": "Project Management",
-      "excerpt": "The coordination principles that keep multi-trade luxury projects moving without compromising quality.",
-      "content": "",
-      "image": "images/caron.jpg",
-      "date": "April 2026",
-      "readTime": "5 min read",
-      "featured": false,
-      "published": true,
-      "homeSelected": false
-    },
-    {
       "id": 5,
       "title": "Scaling Restaurant Concepts Across Multiple Locations",
       "slug": "scaling-restaurant-concepts-across-multiple-locations",
@@ -27,20 +13,6 @@
       "featured": false,
       "published": true,
       "homeSelected": false
-    },
-    {
-      "id": 4,
-      "title": "Bespoke Millwork: The Quiet Hero of Luxury Interiors",
-      "slug": "bespoke-millwork-the-quiet-hero-of-luxury-interiors",
-      "category": "Joinery",
-      "excerpt": "Why custom cabinetry and architectural joinery remain the defining detail in high-end boutique design.",
-      "content": "",
-      "image": "images/lodore.jpg",
-      "date": "February 2026",
-      "readTime": "7 min read",
-      "featured": false,
-      "published": true,
-      "homeSelected": true
     },
     {
       "id": 3,
