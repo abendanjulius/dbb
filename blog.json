@@ -97,18 +97,6 @@
       "featured": false,
       "published": true,
       "homeSelected": false
-    },
-    {
-      "id": 8,
-      "title": "test",
-      "slug": "test",
-      "category": "F&B",
-      "date": "2026-06-30",
-      "image": "images/1782767539598-venetian16.png",
-      "excerpt": "ffgffdfdf",
-      "featured": false,
-      "published": true,
-      "homeSelected": false
     }
   ]
 }
