@@ -1,12 +1,12 @@
 {
   "items": [
     {
-      "blogId": 8,
-      "brand": "F&B",
-      "title": "TEST",
-      "description": "THIS IS A TEST\n\nHSFHFIWOJLAJLLMLSM",
-      "tag": "F&B · Journal",
-      "image": "images/1782773880079-venetian.png",
+      "blogId": 7,
+      "brand": "Retail",
+      "title": "Crafting Flagship Perfumery Experiences in the GCC",
+      "description": "How bespoke joinery, lighting choreography, and material selection shape unforgettable luxury retail environments.",
+      "tag": "Retail · Journal",
+      "image": "images/clivechristian.jpg",
       "imageWebp": "",
       "link": "blog.html"
     },
