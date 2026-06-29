@@ -1,16 +1,6 @@
 {
   "items": [
     {
-      "blogId": 7,
-      "brand": "Retail",
-      "title": "Crafting Flagship Perfumery Experiences in the GCC",
-      "description": "How bespoke joinery, lighting choreography, and material selection shape unforgettable luxury retail environments.",
-      "tag": "Retail · Journal",
-      "image": "images/clivechristian.jpg",
-      "imageWebp": "",
-      "link": "blog.html"
-    },
-    {
       "blogId": 4,
       "brand": "Joinery",
       "title": "Bespoke Millwork: The Quiet Hero of Luxury Interiors",
