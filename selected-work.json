@@ -1,16 +1,6 @@
 {
   "items": [
     {
-      "blogId": 4,
-      "brand": "Joinery",
-      "title": "Bespoke Millwork: The Quiet Hero of Luxury Interiors",
-      "description": "Why custom cabinetry and architectural joinery remain the defining detail in high-end boutique design.",
-      "tag": "Joinery · Journal",
-      "image": "images/lodore.jpg",
-      "imageWebp": "",
-      "link": "blog.html"
-    },
-    {
       "blogId": null,
       "brand": "Clive Christian",
       "title": "Flagship Perfumery Boutique",
