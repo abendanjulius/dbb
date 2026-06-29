@@ -1,20 +1,6 @@
 {
   "posts": [
     {
-      "id": 7,
-      "title": "Crafting Flagship Perfumery Experiences in the GCC",
-      "slug": "crafting-flagship-perfumery-experiences-in-the-gcc",
-      "category": "Retail",
-      "excerpt": "How bespoke joinery, lighting choreography, and material selection shape unforgettable luxury retail environments.",
-      "content": "",
-      "image": "images/clivechristian.jpg",
-      "date": "May 2026",
-      "readTime": "6 min read",
-      "featured": false,
-      "published": true,
-      "homeSelected": true
-    },
-    {
       "id": 6,
       "title": "Timeline Guardianship: Delivering Complex Fit-Outs On Schedule",
       "slug": "timeline-guardianship-delivering-complex-fit-outs-on-schedule",
