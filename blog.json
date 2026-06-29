@@ -1,20 +1,6 @@
 {
   "posts": [
     {
-      "id": 5,
-      "title": "Scaling Restaurant Concepts Across Multiple Locations",
-      "slug": "scaling-restaurant-concepts-across-multiple-locations",
-      "category": "F&B",
-      "excerpt": "Maintaining brand integrity and operational efficiency when rolling out hospitality fit-outs region-wide.",
-      "content": "",
-      "image": "images/shrimppot.jpg",
-      "date": "March 2026",
-      "readTime": "4 min read",
-      "featured": false,
-      "published": true,
-      "homeSelected": false
-    },
-    {
       "id": 1,
       "title": "From Vision to Reality: Delivering L'Odore, Riyadh Through Turnkey Excellence",
       "slug": "from-vision-to-reality-delivering-l-odore-riyadh-through-turnkey-excellence",
