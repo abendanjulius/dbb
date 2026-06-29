@@ -24,9 +24,9 @@
       "image": "images/lodore.webp",
       "date": "2026-06-30",
       "readTime": "5 min read",
-      "featured": true,
+      "featured": false,
       "published": true,
-      "homeSelected": false
+      "homeSelected": true
     }
   ]
 }
