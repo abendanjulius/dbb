@@ -248,6 +248,20 @@
               <div class="hint">Becomes the newest card (slot 1). The oldest of the four is removed — e.g. ShrimpPot drops off when you add a fifth.</div>
             </div>
 
+            <div id="home-extra-fields" style="display:none; margin-top:12px;">
+              <div class="row2">
+                <div class="field">
+                  <label for="project">Project</label>
+                  <input id="project" placeholder="e.g. Flagship Perfumery Boutique">
+                </div>
+                <div class="field">
+                  <label for="location">Location</label>
+                  <input id="location" placeholder="e.g. Dubai Mall">
+                </div>
+              </div>
+              <div class="hint" style="margin-top:4px;">These will appear as the overlay on the homepage card image (Project · Location).</div>
+            </div>
+
             <div class="form-actions">
               <button class="btn primary" type="submit">Save Post</button>
               <button class="btn" type="button" id="reset-btn">Clear Form</button>
@@ -930,12 +944,15 @@
   function postToSelectedWorkItem(post) {
     const image = post.image || '';
     const imageWebp = image.endsWith('.webp') ? image : '';
+    const project = post.project || post.category || 'Journal';
+    const loc = post.location || '';
+    const tag = [project, loc].filter(Boolean).join(' · ') || 'Journal';
     return {
       blogId: post.id,
-      brand: post.category || 'Journal',
+      brand: project,
       title: post.title,
       description: post.excerpt || '',
-      tag: (post.category || 'Journal') + ' · Journal',
+      tag,
       image,
       imageWebp,
       link: '',
@@ -1233,6 +1250,7 @@
     formTitle.textContent = 'New Post';
     deleteBtn.style.display = 'none';
     updatePreview();
+    toggleHomeExtraFields();
     document.querySelectorAll('.post-item').forEach(el => el.classList.remove('active'));
   }
 
@@ -1246,9 +1264,12 @@
     document.getElementById('image-file').value = '';
     setImageFilename(post.image || '');
     document.getElementById('excerpt').value = post.excerpt || '';
+    document.getElementById('project').value = post.project || '';
+    document.getElementById('location').value = post.location || '';
     document.getElementById('featured').checked = !!post.featured;
     document.getElementById('published').checked = !!post.published;
     document.getElementById('homeSelected').checked = !!post.homeSelected;
+    toggleHomeExtraFields();
     formTitle.textContent = 'Edit Post';
     deleteBtn.style.display = 'inline-block';
     updatePreview();
@@ -1654,6 +1675,16 @@
     setFeaturedPost(featuredId);
   }
 
+  function toggleHomeExtraFields() {
+    const checked = document.getElementById('homeSelected').checked;
+    const fields = document.getElementById('home-extra-fields');
+    if (fields) fields.style.display = checked ? 'block' : 'none';
+  }
+
+  document.getElementById('homeSelected').addEventListener('change', toggleHomeExtraFields);
+  // initial state
+  toggleHomeExtraFields();
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -1665,6 +1696,8 @@
     const featured = document.getElementById('featured').checked;
     const published = document.getElementById('published').checked;
     const homeSelected = document.getElementById('homeSelected').checked;
+    const project = document.getElementById('project') ? document.getElementById('project').value.trim() : '';
+    const location = document.getElementById('location') ? document.getElementById('location').value.trim() : '';
 
     if (title.length > 50) {
       showStatus('Title must be 50 characters or less.', 'err');
@@ -1685,6 +1718,8 @@
       featured,
       published,
       homeSelected,
+      project,
+      location,
     };
 
     if (editingId) {
