@@ -511,7 +511,7 @@
         const tag = escapeHtml(item.tag || 'Project');
         const image = item.image || '';
         const imageWebp = item.imageWebp || (image.endsWith('.webp') ? image : '');
-        const link = item.link ? escapeHtml(item.link) : '';
+        const link = (item.blogId == null && item.link) ? escapeHtml(item.link) : '';
 
         const picture = imageWebp && imageWebp !== image
           ? `<picture><source srcset="${imageWebp}" type="image/webp"><img src="${image}" alt="${alt}" width="1200" height="800" loading="lazy"></picture>`
