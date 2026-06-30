@@ -195,7 +195,8 @@
 
             <div class="field">
               <label for="title">Title</label>
-              <input id="title" required placeholder="Article title">
+              <input id="title" required placeholder="Article title" maxlength="50">
+              <div class="hint">Maximum 50 characters</div>
             </div>
 
             <div class="row2">
@@ -224,7 +225,8 @@
 
             <div class="field">
               <label for="excerpt">Summary</label>
-              <textarea id="excerpt" placeholder="Short summary shown on the blog listing" required></textarea>
+              <textarea id="excerpt" placeholder="Short summary shown on the blog listing" required maxlength="200"></textarea>
+              <div class="hint">Maximum 200 characters</div>
             </div>
 
             <div class="row2">
@@ -1663,6 +1665,15 @@
     const featured = document.getElementById('featured').checked;
     const published = document.getElementById('published').checked;
     const homeSelected = document.getElementById('homeSelected').checked;
+
+    if (title.length > 50) {
+      showStatus('Title must be 50 characters or less.', 'err');
+      return;
+    }
+    if (excerpt.length > 200) {
+      showStatus('Summary must be 200 characters or less.', 'err');
+      return;
+    }
 
     const postData = {
       title,

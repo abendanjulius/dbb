@@ -425,8 +425,8 @@
         </div>
         <div class="fp-body">
           <div class="fp-cat">${escapeHtml(post.category)}</div>
-          <h2><a href="#">${escapeHtml(post.title)}</a></h2>
-          <p class="fp-excerpt">${escapeHtml(post.excerpt)}</p>
+          <h2><a href="#">${escapeHtml((post.title || '').slice(0, 50))}</a></h2>
+          <p class="fp-excerpt">${escapeHtml((post.excerpt || '').slice(0, 200))}</p>
           <div class="fp-meta">${escapeHtml(formatDisplayDate(post.date))}</div>
         </div>
       </article>`;
@@ -445,8 +445,8 @@
         </div>
         <div class="bc-body">
           <div class="bc-cat">${escapeHtml(post.category)}</div>
-          <h3><a href="#">${escapeHtml(post.title)}</a></h3>
-          <p class="bc-excerpt">${escapeHtml(post.excerpt)}</p>
+          <h3><a href="#">${escapeHtml((post.title || '').slice(0, 50))}</a></h3>
+          <p class="bc-excerpt">${escapeHtml((post.excerpt || '').slice(0, 200))}</p>
           <div class="bc-meta">${escapeHtml(formatDisplayDate(post.date))}</div>
         </div>
       </article>`).join('');
