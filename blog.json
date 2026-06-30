@@ -12,7 +12,9 @@
       "readTime": "5 min read",
       "featured": true,
       "published": true,
-      "homeSelected": false
+      "homeSelected": true,
+      "project": "L'Odore",
+      "location": "Riyadh, KSA"
     }
   ]
 }
