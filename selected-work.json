@@ -1,6 +1,16 @@
 {
   "items": [
     {
+      "blogId": 1,
+      "brand": "Turnkey",
+      "title": "From Vision to Reality: Delivering L'Odore, Riyadh",
+      "description": "One of our turnkey projects for L'Odore, a luxury perfume boutique in Riyadh, Kingdom of Saudi Arabia, is a testament to what can be achieved when design, engineering, and construction work.",
+      "tag": "Turnkey · Journal",
+      "image": "images/lodore.webp",
+      "imageWebp": "images/lodore.webp",
+      "link": "blog.html"
+    },
+    {
       "blogId": null,
       "brand": "Clive Christian",
       "title": "Flagship Perfumery Boutique",
