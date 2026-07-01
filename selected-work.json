@@ -1,6 +1,16 @@
 {
   "items": [
     {
+      "blogId": 2,
+      "brand": "Hospitality",
+      "title": "The Venetian Macau: Crafted for Timeless Luxury",
+      "description": "From design to delivery, Creative DBB's CEO helped shape the Garden & Penthouse interiors at The Venetian Macau — a landmark in luxury hospitality.",
+      "tag": "Hospitality",
+      "image": "images/1782867871420-venetian5.png",
+      "imageWebp": "",
+      "link": ""
+    },
+    {
       "blogId": 1,
       "brand": "L'Odore",
       "title": "From Vision to Reality: Delivering L'Odore, Riyadh",
