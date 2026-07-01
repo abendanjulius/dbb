@@ -24,11 +24,25 @@
       "date": "2026-07-01",
       "image": "images/1782868842826-shrimppot.jpg",
       "excerpt": "Rope ceilings. Warm timber. Coastal murals that move. ShrimpPot was designed to do more than serve food — it was built to transport you. Another Creative DBB fit-out, delivered in full.",
-      "featured": true,
+      "featured": false,
       "published": true,
       "homeSelected": true,
       "project": "",
       "location": ""
+    },
+    {
+      "id": 3,
+      "title": "The Venetian Macau: Crafted for Timeless Luxury",
+      "slug": "the-venetian-macau-crafted-for-timeless-luxury",
+      "category": "Hospitality",
+      "date": "2026-07-01",
+      "image": "images/1782869188318-venetian5.png",
+      "excerpt": "From design to delivery, Creative DBB's CEO helped shape the Garden & Penthouse interiors at The Venetian Macau — a landmark in luxury hospitality.",
+      "featured": true,
+      "published": true,
+      "homeSelected": true,
+      "project": "International Hospitality",
+      "location": "Macau"
     }
   ]
 }
