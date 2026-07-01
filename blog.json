@@ -10,11 +10,25 @@
       "image": "images/lodore.webp",
       "date": "2026-06-30",
       "readTime": "5 min read",
-      "featured": true,
+      "featured": false,
       "published": true,
       "homeSelected": true,
       "project": "L'Odore",
       "location": "Riyadh, KSA"
+    },
+    {
+      "id": 2,
+      "title": "The Venetian Macau: Crafted for Timeless Luxury",
+      "slug": "the-venetian-macau-crafted-for-timeless-luxury",
+      "category": "Hospitality",
+      "date": "2026-07-01",
+      "image": "images/1782867871420-venetian5.png",
+      "excerpt": "From design to delivery, Creative DBB's CEO helped shape the Garden & Penthouse interiors at The Venetian Macau — a landmark in luxury hospitality.",
+      "featured": true,
+      "published": true,
+      "homeSelected": true,
+      "project": "",
+      "location": ""
     }
   ]
 }
