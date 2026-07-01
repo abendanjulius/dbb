@@ -2,11 +2,11 @@
   "items": [
     {
       "blogId": 2,
-      "brand": "Hospitality",
-      "title": "The Venetian Macau: Crafted for Timeless Luxury",
-      "description": "From design to delivery, Creative DBB's CEO helped shape the Garden & Penthouse interiors at The Venetian Macau — a landmark in luxury hospitality.",
-      "tag": "Hospitality",
-      "image": "images/1782867871420-venetian5.png",
+      "brand": "F&B",
+      "title": "Designed to Feel Like the Sea Came Indoors",
+      "description": "Rope ceilings. Warm timber. Coastal murals that move. ShrimpPot was designed to do more than serve food — it was built to transport you. Another Creative DBB fit-out, delivered in full.",
+      "tag": "F&B",
+      "image": "images/1782868842826-shrimppot.jpg",
       "imageWebp": "",
       "link": ""
     },
