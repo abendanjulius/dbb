@@ -38,11 +38,25 @@
       "date": "2026-07-01",
       "image": "images/1782869188318-venetian5.png",
       "excerpt": "From design to delivery, Creative DBB's CEO helped shape the Garden & Penthouse interiors at The Venetian Macau — a landmark in luxury hospitality.",
-      "featured": true,
+      "featured": false,
       "published": true,
       "homeSelected": true,
       "project": "International Hospitality",
       "location": "Macau"
+    },
+    {
+      "id": 4,
+      "title": "Clive Christian Boutique, Dubai Mall",
+      "slug": "clive-christian-boutique-dubai-mall",
+      "category": "Project Management",
+      "date": "2026-07-11",
+      "image": "images/1783765813092-b8a1e803-8630-45b2-848e-173058a4dd10.jpg",
+      "excerpt": "Some spaces are designed to hold products. The Clive Christian Boutique at Dubai Mall was conceived to hold an experience. A retail environment to embody its world-renowned fragrances.",
+      "featured": true,
+      "published": true,
+      "homeSelected": true,
+      "project": "Flagship Boutique",
+      "location": "Dubai Mall"
     }
   ]
 }
